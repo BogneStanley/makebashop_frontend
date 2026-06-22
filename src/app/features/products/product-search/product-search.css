@@ -2,13 +2,19 @@
 @media (min-width: 1024px) {
   aside {
     position: sticky;
-    top: 2rem;
+    top: 6rem;
     height: fit-content;
   }
 }
 
+/* Force padding-left on search input to prevent icon overlap */
+input[pInputText] {
+  padding-left: 2.5rem !important;
+}
+
 /* Custom PrimeNG component overwrites for brand integration */
 :host ::ng-deep {
+
   /* Slider styling override */
   .p-slider {
     background: #e2e8f0;
@@ -17,14 +23,16 @@
   }
 
   .p-slider .p-slider-range {
-    background: #d97706; /* amber-600 */
+    background: #d97706;
+    /* amber-600 */
   }
 
   .p-slider .p-slider-handle {
     height: 14px;
     width: 14px;
     background: #ffffff;
-    border: 2px solid #d97706; /* amber-600 */
+    border: 2px solid #d97706;
+    /* amber-600 */
     border-radius: 50%;
     transition: background-color 0.2s, border-color 0.2s;
     cursor: grab;
@@ -79,8 +87,10 @@
   }
 
   .p-select-option.p-highlight {
-    background: #fef3c7; /* amber-100 */
-    color: #b45309; /* amber-700 */
+    background: #fef3c7;
+    /* amber-100 */
+    color: #b45309;
+    /* amber-700 */
   }
 
   .p-select-option:not(.p-highlight):not(.p-disabled).p-focus {
