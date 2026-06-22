@@ -1,14 +1,40 @@
-<section class="relative h-[80vh] min-h-[600px] bg-cover bg-center flex items-center justify-center" 
-         style="background-image: url('https://images.unsplash.com/photo-1483985981027-ebd2d80a3400?auto=format&fit=crop&w=1920&q=80');">
-  <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+<!-- <section
+  class="relative h-[80vh] min-h-150 bg-cover bg-center flex items-center justify-center"
+  style="
+    background-image: url('https://images.unsplash.com/photo-1771771425345-ea40b23e8220?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+  "
+>
+  <div class="absolute inset-0 bg-linear-to-r from-black/70 via-black/40 to-transparent"></div>
   <div class="relative z-10 max-w-2xl px-6 text-left">
-    <h1 class="text-5xl md:text-6xl font-thin text-white mb-6 tracking-tight">{{ title }}</h1>
-    <p class="text-lg md:text-xl text-gray-200 mb-8 font-light">{{ subtitle }}</p>
-    <p-button 
-      [label]="ctaText" 
-      [routerLink]="ctaLink"
-      [raised]="true"
-      styleClass="bg-amber-600 hover:bg-amber-700 border-amber-600"
-    ></p-button>
+    <h1 class="text-5xl md:text-6xl font-thin text-white mb-6 tracking-tight">{{ title() }}</h1>
+    <p class="text-lg md:text-xl text-gray-200 mb-8 font-light">{{ subtitle() }}</p>
+    <button
+      class="rounded-0 bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-3 transition-colors cursor-pointer duration-300"
+      [routerLink]="ctaLink()"
+    >
+      {{ ctaText() }}
+    </button>
+  </div>
+</section> -->
+<!-- Hero that contains image at right and text at left -->
+<section class="relative max-w-7xl h-[60vh] min-h-100 mx-auto mt-12">
+  <div class="w-full h-full flex px-6 items-center gap-12">
+    <div class="flex-1">
+      <h1 class="text-5xl md:text-6xl font-thin mb-6 tracking-tight">{{ title() }}</h1>
+      <p class="text-lg md:text-xl mb-8 font-light">{{ subtitle() }}</p>
+      <button
+        class="rounded-0 bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-3 transition-colors cursor-pointer duration-300"
+        [routerLink]="ctaLink()"
+      >
+        {{ ctaText() }}
+      </button>
+    </div>
+    <div class="relative flex-1 h-full flex items-center justify-end">
+      <img
+        src="https://images.unsplash.com/photo-1771771425345-ea40b23e8220?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        alt="Hero Image"
+        class="w-100 h-100 object-cover rounded-0"
+      />
+    </div>
   </div>
 </section>

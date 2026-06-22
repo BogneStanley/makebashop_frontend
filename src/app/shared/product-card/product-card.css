@@ -1,3 +1,13 @@
 :host {
   display: block;
+  width: 100%;
+}
+
+.product-card {
+  width: 100%;
+  cursor: pointer;
+}
+
+.scale-105 {
+  transform: scale(1.05);
 }
