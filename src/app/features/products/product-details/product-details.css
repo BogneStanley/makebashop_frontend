@@ -1,0 +1,79 @@
+/* Custom PrimeNG overrides for Product Details page */
+:host ::ng-deep {
+  /* Stepper / InputNumber custom styling */
+  .p-inputnumber {
+    display: inline-flex;
+    border: 1px solid #e5e7eb;
+  }
+
+  .p-inputnumber-button {
+    background: #ffffff !important;
+    color: #4b5563 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0.5rem 1rem !important;
+    transition: background-color 0.2s;
+  }
+
+  .p-inputnumber-button:hover {
+    background: #f9fafb !important;
+  }
+
+  .p-inputnumber-input {
+    border: none !important;
+    border-radius: 0 !important;
+    text-align: center !important;
+    width: 3rem !important;
+    font-weight: 300 !important;
+    box-shadow: none !important;
+    padding: 0.5rem 0 !important;
+  }
+
+  .p-inputnumber-input:focus {
+    outline: none !important;
+  }
+
+  /* Large Add to Cart Button overrides */
+  .p-button {
+    background: #d97706; /* amber-600 */
+    border: 1px solid #d97706;
+    border-radius: 0;
+    transition: background-color 0.2s, border-color 0.2s;
+    font-family: inherit;
+    justify-content: center;
+  }
+
+  .p-button:hover:not(:disabled) {
+    background: #b45309 !important; /* amber-700 */
+    border-color: #b45309 !important;
+  }
+
+  .p-button:focus-visible {
+    box-shadow: 0 0 0 0.2rem rgba(217, 119, 6, 0.15);
+  }
+
+  .p-button:disabled {
+    background: #e5e7eb !important;
+    border-color: #e5e7eb !important;
+    color: #9ca3af !important;
+    cursor: not-allowed;
+  }
+}
+
+/* Custom Scrollbar for Thumbnails (minimalistic) */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

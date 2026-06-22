@@ -1,0 +1,246 @@
+<app-header></app-header>
+
+<main class="bg-white min-h-screen">
+  @if (product(); as prod) {
+    <!-- Breadcrumbs -->
+    <div class="border-b border-gray-100 py-4 bg-gray-50 text-xs md:text-sm font-light text-gray-500">
+      <div class="max-w-7xl mx-auto px-6 flex items-center gap-2">
+        <a routerLink="/" class="hover:text-amber-600 transition-colors">Accueil</a>
+        <i class="pi pi-chevron-right text-[10px]"></i>
+        <a routerLink="/products" class="hover:text-amber-600 transition-colors">Produits</a>
+        <i class="pi pi-chevron-right text-[10px]"></i>
+        <span class="text-gray-900 font-normal">{{ prod.name }}</span>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-6 py-12">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+        
+        <!-- Left: Image Gallery -->
+        <div class="flex flex-col gap-4">
+          <!-- Main Display -->
+          <div class="relative bg-gray-50 overflow-hidden group aspect-[3/4] max-h-[600px] border border-gray-100">
+            <img
+              [src]="selectedImage()"
+              [alt]="prod.name"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            @if (prod.stock === 0) {
+              <span class="absolute top-4 left-4 bg-black text-white text-xs uppercase tracking-widest px-3 py-1 font-semibold">
+                Rupture de Stock
+              </span>
+            }
+          </div>
+
+          <!-- Thumbnails Row -->
+          @if (prod.images.length > 1) {
+            <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+              @for (img of prod.images; track img) {
+                <button
+                  type="button"
+                  class="relative aspect-[3/4] w-20 md:w-24 flex-shrink-0 bg-gray-50 border transition-all duration-200 focus:outline-none"
+                  [class.border-amber-600]="selectedImage() === img"
+                  [class.border-gray-200]="selectedImage() !== img"
+                  (click)="selectImage(img)"
+                >
+                  <img [src]="img" class="w-full h-full object-cover" alt="Vignette" />
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Right: Info and Configuration -->
+        <div class="flex flex-col gap-6">
+          <div>
+            <span class="text-xs uppercase tracking-widest text-amber-600 font-semibold mb-1 block">
+              {{ prod.category }}
+            </span>
+            <h1 class="text-3xl md:text-4xl font-thin text-gray-900 tracking-wide mb-3">
+              {{ prod.name }}
+            </h1>
+            <p class="text-2xl font-bold text-gray-900">
+              {{ prod.price | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
+            </p>
+          </div>
+
+          <div class="border-t border-b border-gray-100 py-4">
+            <p class="text-sm font-light text-gray-600 leading-relaxed">
+              {{ prod.description }}
+            </p>
+          </div>
+
+          <!-- Options -->
+          <div class="flex flex-col gap-5">
+            <!-- Colors Swatches -->
+            @if (prod.colors && prod.colors.length > 0) {
+              <div>
+                <span class="text-xs font-semibold tracking-wider uppercase text-gray-900 block mb-3">
+                  Couleur
+                </span>
+                <div class="flex items-center gap-3">
+                  @for (color of prod.colors; track color) {
+                    <button
+                      type="button"
+                      class="w-8 h-8 rounded-full border transition-all duration-200 focus:outline-none flex items-center justify-center cursor-pointer"
+                      [style.backgroundColor]="color"
+                      [class.border-gray-900]="selectedColor() === color"
+                      [class.border-gray-200]="selectedColor() !== color"
+                      [class.scale-110]="selectedColor() === color"
+                      (click)="selectColor(color)"
+                      [title]="color"
+                    >
+                      @if (selectedColor() === color) {
+                        <span class="w-2 h-2 rounded-full" [style.backgroundColor]="color === '#FFFFFF' ? '#000' : '#FFF'"></span>
+                      }
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Sizes Selection -->
+            @if (prod.sizes && prod.sizes.length > 0) {
+              <div>
+                <div class="flex justify-between items-center mb-3">
+                  <span class="text-xs font-semibold tracking-wider uppercase text-gray-900">
+                    Taille
+                  </span>
+                  <button type="button" class="text-xs text-amber-600 hover:underline font-light cursor-pointer">
+                    Guide des tailles
+                  </button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  @for (size of prod.sizes; track size) {
+                    <button
+                      type="button"
+                      class="px-4 py-2 border text-sm font-light tracking-wide transition-all duration-200 focus:outline-none min-w-[50px] cursor-pointer"
+                      [class.bg-gray-900]="selectedSize() === size"
+                      [class.text-white]="selectedSize() === size"
+                      [class.border-gray-900]="selectedSize() === size"
+                      [class.bg-white]="selectedSize() !== size"
+                      [class.text-gray-900]="selectedSize() !== size"
+                      [class.border-gray-200]="selectedSize() !== size"
+                      [class.hover:border-gray-900]="selectedSize() !== size"
+                      (click)="selectSize(size)"
+                    >
+                      {{ size }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Quantity Selector -->
+            <div>
+              <span class="text-xs font-semibold tracking-wider uppercase text-gray-900 block mb-3">
+                Quantité
+              </span>
+              <p-inputNumber
+                [ngModel]="quantity()"
+                (ngModelChange)="quantity.set($event)"
+                [showButtons]="true"
+                buttonLayout="horizontal"
+                spinnerMode="horizontal"
+                [min]="1"
+                [max]="prod.stock || 1"
+                [disabled]="prod.stock === 0"
+                decrementButtonClass="p-button-secondary border-gray-200 rounded-0"
+                incrementButtonClass="p-button-secondary border-gray-200 rounded-0"
+                incrementButtonIcon="pi pi-plus text-xs"
+                decrementButtonIcon="pi pi-minus text-xs"
+                class="w-36"
+                styleClass="w-full text-center border-gray-200 rounded-0"
+              ></p-inputNumber>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-4 pt-4 border-t border-gray-100">
+            <button
+              pButton
+              type="button"
+              [label]="prod.stock > 0 ? 'Ajouter au Panier' : 'Rupture de Stock'"
+              icon="pi pi-shopping-cart"
+              [disabled]="prod.stock === 0"
+              class="w-full py-4 text-sm uppercase tracking-wider font-semibold rounded-0"
+              [class.bg-amber-600]="prod.stock > 0"
+              [class.border-amber-600]="prod.stock > 0"
+              [class.bg-gray-300]="prod.stock === 0"
+              [class.border-gray-300]="prod.stock === 0"
+              [class.text-white]="true"
+              (click)="addToCart()"
+            ></button>
+          </div>
+
+          <!-- Description, Shipping, Guide Tabs -->
+          <div class="mt-8">
+            <div class="flex border-b border-gray-100 text-sm font-light">
+              <button
+                type="button"
+                class="py-3 px-4 border-b-2 font-medium tracking-wide transition-colors -mb-[2px] cursor-pointer"
+                [class.border-amber-600]="activeTab() === 'description'"
+                [class.text-amber-600]="activeTab() === 'description'"
+                [class.border-transparent]="activeTab() !== 'description'"
+                [class.text-gray-500]="activeTab() !== 'description'"
+                (click)="setTab('description')"
+              >
+                Détails
+              </button>
+              <button
+                type="button"
+                class="py-3 px-4 border-b-2 font-medium tracking-wide transition-colors -mb-[2px] cursor-pointer"
+                [class.border-amber-600]="activeTab() === 'shipping'"
+                [class.text-amber-600]="activeTab() === 'shipping'"
+                [class.border-transparent]="activeTab() !== 'shipping'"
+                [class.text-gray-500]="activeTab() !== 'shipping'"
+                (click)="setTab('shipping')"
+              >
+                Livraison & Retours
+              </button>
+            </div>
+            
+            <div class="py-6 text-sm font-light text-gray-600 leading-relaxed">
+              @if (activeTab() === 'description') {
+                <ul class="list-disc pl-5 flex flex-col gap-2">
+                  <li>Matières premières de première qualité</li>
+                  <li>Conception soignée et coutures renforcées</li>
+                  <li>Entretien : Nettoyage à sec recommandé pour conserver la texture d'origine</li>
+                  <li>Origine : Conçu dans nos ateliers de stylisme</li>
+                </ul>
+              } @else if (activeTab() === 'shipping') {
+                <p class="mb-3">
+                  Nous offrons la livraison standard gratuite sur toutes les commandes de plus de 100 000 FCFA.
+                </p>
+                <p>
+                  Les retours sont acceptés dans les 14 jours suivant la réception de votre colis. L'article doit être inutilisé et muni de toutes ses étiquettes d'origine.
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  } @else {
+    <!-- Empty State / Not Found -->
+    <div class="max-w-7xl mx-auto px-6 py-24 text-center">
+      <i class="pi pi-exclamation-circle text-5xl text-gray-300 mb-4"></i>
+      <h2 class="text-2xl font-light text-gray-900 mb-2">Produit non trouvé</h2>
+      <p class="text-sm font-light text-gray-500 mb-6">
+        Désolé, le produit que vous cherchez n'existe pas ou a été retiré de notre collection.
+      </p>
+      <button
+        pButton
+        type="button"
+        label="Retourner aux produits"
+        icon="pi pi-arrow-left"
+        class="p-button-primary bg-amber-500 border-amber-500 hover:bg-amber-600 hover:border-amber-600 px-6 py-2.5 rounded-0 font-medium text-sm text-white"
+        routerLink="/products"
+      ></button>
+    </div>
+  }
+</main>
+
+<app-footer></app-footer>

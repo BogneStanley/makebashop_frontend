@@ -1,0 +1,159 @@
+<app-header></app-header>
+
+<main class="bg-white min-h-screen">
+  <!-- Page Title Banner -->
+  <div class="border-b border-gray-100 py-10 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-6">
+      <h1 class="text-4xl font-thin text-gray-900 tracking-wide">Collections</h1>
+      <div class="w-16 h-0.5 bg-amber-600 mt-3"></div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-12">
+      <!-- Left Panel: Filters -->
+      <aside class="lg:col-span-1 flex flex-col gap-8">
+        <!-- Search bar -->
+        <div>
+          <h3 class="text-sm font-semibold tracking-wider text-gray-900 uppercase mb-3">Recherche</h3>
+          <div class="relative w-full">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="pi pi-search text-gray-400"></i>
+            </span>
+            <input
+              type="text"
+              pInputText
+              placeholder="Rechercher un article..."
+              class="w-full pl-10 border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+            />
+          </div>
+        </div>
+
+        <!-- Categories Filter -->
+        <div>
+          <h3 class="text-sm font-semibold tracking-wider text-gray-900 uppercase mb-4">Catégories</h3>
+          <div class="flex flex-col gap-3">
+            @for (cat of categories(); track cat) {
+              <div class="flex items-center gap-3">
+                <p-checkbox
+                  [name]="cat"
+                  [value]="cat"
+                  [ngModel]="selectedCategories()"
+                  (ngModelChange)="selectedCategories.set($event)"
+                  [inputId]="cat"
+                ></p-checkbox>
+                <label [for]="cat" class="text-sm font-light text-gray-600 cursor-pointer select-none">
+                  {{ cat }}
+                </label>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-semibold tracking-wider text-gray-900 uppercase">Prix</h3>
+            <span class="text-xs text-amber-600 font-medium">
+              {{ priceRange()[0] }} FCFA - {{ priceRange()[1] }} FCFA
+            </span>
+          </div>
+          <div class="px-2">
+            <p-slider
+              [min]="0"
+              [max]="500"
+              [range]="true"
+              [ngModel]="priceRange()"
+              (ngModelChange)="priceRange.set($event)"
+              styleClass="w-full"
+            ></p-slider>
+          </div>
+        </div>
+
+        <!-- Stock Availability -->
+        <div class="pt-2">
+          <div class="flex items-center gap-3">
+            <p-checkbox
+              binary="true"
+              [ngModel]="inStockOnly()"
+              (ngModelChange)="inStockOnly.set($event)"
+              inputId="inStock"
+            ></p-checkbox>
+            <label for="inStock" class="text-sm font-light text-gray-600 cursor-pointer select-none">
+              Articles en stock uniquement
+            </label>
+          </div>
+        </div>
+
+        <!-- Reset Filters button -->
+        <div class="pt-4 border-t border-gray-100">
+          <button
+            pButton
+            type="button"
+            label="Réinitialiser les filtres"
+            icon="pi pi-refresh"
+            class="p-button-outlined p-button-secondary w-full py-2.5 text-sm font-medium border-gray-300 text-gray-600 hover:bg-gray-50 rounded-0"
+            (click)="resetFilters()"
+          ></button>
+        </div>
+      </aside>
+
+      <!-- Right Panel: Results -->
+      <section class="lg:col-span-3 flex flex-col gap-6">
+        <!-- Results Header & Sort -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-4 gap-4">
+          <p class="text-sm font-light text-gray-500">
+            @if (filteredProducts().length === 0) {
+              Aucun résultat trouvé
+            } @else if (filteredProducts().length === 1) {
+              1 article trouvé
+            } @else {
+              {{ filteredProducts().length }} articles trouvés
+            }
+          </p>
+
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <span class="text-sm font-light text-gray-500 whitespace-nowrap">Trier par :</span>
+            <p-select
+              [options]="sortOptions"
+              [ngModel]="selectedSort()"
+              (ngModelChange)="selectedSort.set($event)"
+              optionLabel="label"
+              class="w-full sm:w-48"
+              styleClass="w-full text-sm font-light rounded-0"
+            ></p-select>
+          </div>
+        </div>
+
+        <!-- Products Grid -->
+        @if (filteredProducts().length > 0) {
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+            @for (product of filteredProducts(); track product.id) {
+              <app-product-card [product]="product"></app-product-card>
+            }
+          </div>
+        } @else {
+          <!-- Empty State -->
+          <div class="flex flex-col items-center justify-center py-20 text-center border border-dashed border-gray-200">
+            <i class="pi pi-search text-4xl text-gray-300 mb-4"></i>
+            <h3 class="text-lg font-light text-gray-900 mb-1">Aucun produit ne correspond à votre recherche</h3>
+            <p class="text-sm font-light text-gray-500 mb-6 max-w-md">
+              Essayez de modifier vos filtres ou de réinitialiser la recherche pour découvrir d'autres articles de notre collection.
+            </p>
+            <button
+              pButton
+              type="button"
+              label="Effacer la recherche"
+              class="p-button-primary bg-amber-500 border-amber-500 hover:bg-amber-600 hover:border-amber-600 px-6 py-2.5 rounded-0 font-medium text-sm text-white"
+              (click)="resetFilters()"
+            ></button>
+          </div>
+        }
+      </section>
+    </div>
+  </div>
+</main>
+
+<app-footer></app-footer>

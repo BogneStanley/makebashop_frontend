@@ -1,0 +1,94 @@
+/* Sticky aside navigation on large screens */
+@media (min-width: 1024px) {
+  aside {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+  }
+}
+
+/* Custom PrimeNG component overwrites for brand integration */
+:host ::ng-deep {
+  /* Slider styling override */
+  .p-slider {
+    background: #e2e8f0;
+    border-radius: 0;
+    height: 3px;
+  }
+
+  .p-slider .p-slider-range {
+    background: #d97706; /* amber-600 */
+  }
+
+  .p-slider .p-slider-handle {
+    height: 14px;
+    width: 14px;
+    background: #ffffff;
+    border: 2px solid #d97706; /* amber-600 */
+    border-radius: 50%;
+    transition: background-color 0.2s, border-color 0.2s;
+    cursor: grab;
+    top: 50%;
+    margin-top: -7px;
+  }
+
+  .p-slider .p-slider-handle:hover {
+    background: #d97706;
+  }
+
+  /* Checkbox styling override */
+  .p-checkbox .p-checkbox-box {
+    border-radius: 0;
+    border: 1px solid #d1d5db;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .p-checkbox .p-checkbox-box:hover {
+    border-color: #d97706;
+  }
+
+  .p-checkbox.p-checkbox-checked .p-checkbox-box {
+    border-color: #d97706;
+    background: #d97706;
+  }
+
+  .p-checkbox .p-checkbox-box:focus-visible {
+    box-shadow: 0 0 0 0.2rem rgba(217, 119, 6, 0.15);
+  }
+
+  /* Dropdown Select styling override */
+  .p-select {
+    border-radius: 0;
+    border: 1px solid #e5e7eb;
+    box-shadow: none;
+  }
+
+  .p-select:hover {
+    border-color: #d1d5db;
+  }
+
+  .p-select:not(.p-disabled).p-focus {
+    border-color: #d97706;
+    box-shadow: 0 0 0 1px rgba(217, 119, 6, 0.1);
+  }
+
+  .p-select-overlay {
+    border-radius: 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f3f4f6;
+  }
+
+  .p-select-option.p-highlight {
+    background: #fef3c7; /* amber-100 */
+    color: #b45309; /* amber-700 */
+  }
+
+  .p-select-option:not(.p-highlight):not(.p-disabled).p-focus {
+    background: #f9fafb;
+  }
+}
+
+/* Transitions for list */
+.grid {
+  transition: all 0.3s ease-in-out;
+}

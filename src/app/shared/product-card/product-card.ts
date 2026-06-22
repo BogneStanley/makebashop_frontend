@@ -1,22 +1,14 @@
-import { Component, input, Input, signal } from '@angular/core';
+import { Component, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CurrencyPipe } from '@angular/common';
+import { RouterModule, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-
 import { CardModule } from 'primeng/card';
-
-export interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  description?: string;
-  stock?: number;
-}
+import { Product } from '../../core/services/product.service';
 
 @Component({
   selector: 'app-product-card',
-  imports: [ButtonModule, CurrencyPipe, CommonModule, CardModule],
+  imports: [ButtonModule, CurrencyPipe, CommonModule, CardModule, RouterModule, RouterLink],
   templateUrl: './product-card.html',
   styleUrl: './product-card.css',
 })
