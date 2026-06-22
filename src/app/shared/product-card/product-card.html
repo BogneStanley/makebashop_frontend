@@ -1,0 +1,16 @@
+<p-card styleClass="shadow-none border border-gray-100 rounded-none overflow-hidden">
+  <ng-template pTemplate="header">
+    <img [src]="product.image" [alt]="product.name" class="w-full h-64 object-cover">
+  </ng-template>
+  <div class="p-4">
+    <h3 class="font-medium text-gray-900 mb-2">{{ product.name }}</h3>
+    <p class="text-amber-600 font-semibold text-lg mb-3">{{ product.price | currency:'EUR':'symbol':'1.0-0' }}</p>
+    <p-button 
+      label="Ajouter au panier" 
+      [icon]="'pi pi-shopping-cart'"
+      [outlined]="true"
+      styleClass="w-full border-amber-600 text-amber-600 hover:bg-amber-50"
+      (onClick)="addToCart()"
+    ></p-button>
+  </div>
+</p-card>

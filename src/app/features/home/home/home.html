@@ -1,0 +1,31 @@
+<app-header></app-header>
+
+<app-hero></app-hero>
+
+<section class="py-20 px-6 max-w-7xl mx-auto">
+  <div class="mb-12">
+    <h2 class="text-3xl font-thin text-gray-900 tracking-wide">Nouveautés</h2>
+    <div class="w-20 h-0.5 bg-amber-600 mt-4"></div>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    @for (product of nouveautes(); track product.id) {
+      <app-product-card [product]="product"></app-product-card>
+    }
+  </div>
+</section>
+
+<section class="py-20 px-6 bg-gray-50">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-12">
+      <h2 class="text-3xl font-thin text-gray-900 tracking-wide">Les plus vendus</h2>
+      <div class="w-20 h-0.5 bg-amber-600 mt-4"></div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      @for (product of bestSellers(); track product.id) {
+        <app-product-card [product]="product"></app-product-card>
+      }
+    </div>
+  </div>
+</section>
+
+<app-footer></app-footer>
