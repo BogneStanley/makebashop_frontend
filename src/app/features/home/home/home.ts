@@ -6,9 +6,13 @@ import { Hero } from '../hero/hero';
 import { ProductCard } from '../../../shared/product-card/product-card';
 import { ProductService, Product } from '../../../core/services/product.service';
 
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { RouterModule } from '@angular/router';
+
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, Header, Footer, Hero, ProductCard],
+  imports: [CommonModule, Header, Footer, Hero, ProductCard, ButtonModule, InputTextModule, RouterModule],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })

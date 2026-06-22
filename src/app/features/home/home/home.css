@@ -1,0 +1,14 @@
+/* Marquee animation */
+.marquee-track {
+  animation: marquee 30s linear infinite;
+  width: max-content;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}

@@ -1,4 +1,8 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
 @import "primeicons/primeicons.css";
+
+body {
+  background-color: #faf6f0;
+  color: #1c1917;
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+}

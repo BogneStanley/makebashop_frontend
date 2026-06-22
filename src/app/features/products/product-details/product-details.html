@@ -1,9 +1,9 @@
 <app-header></app-header>
 
-<main class="bg-white min-h-screen">
+<main class="min-h-screen">
   @if (product(); as prod) {
     <!-- Breadcrumbs -->
-    <div class="border-b border-gray-100 py-4 bg-gray-50 text-xs md:text-sm font-light text-gray-500">
+    <div class="border-b border-amber-100/40 py-4 text-xs md:text-sm font-light text-gray-500">
       <div class="max-w-7xl mx-auto px-6 flex items-center gap-2">
         <a routerLink="/" class="hover:text-amber-600 transition-colors">Accueil</a>
         <i class="pi pi-chevron-right text-[10px]"></i>
@@ -16,18 +16,21 @@
     <!-- Main Container -->
     <div class="max-w-7xl mx-auto px-6 py-12">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-        
         <!-- Left: Image Gallery -->
         <div class="flex flex-col gap-4">
           <!-- Main Display -->
-          <div class="relative bg-gray-50 overflow-hidden group aspect-[3/4] max-h-[600px] border border-gray-100">
+          <div
+            class="relative bg-gray-50 overflow-hidden group aspect-[3/4] max-h-[600px] border border-gray-100"
+          >
             <img
               [src]="selectedImage()"
               [alt]="prod.name"
               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             @if (prod.stock === 0) {
-              <span class="absolute top-4 left-4 bg-black text-white text-xs uppercase tracking-widest px-3 py-1 font-semibold">
+              <span
+                class="absolute top-4 left-4 bg-black text-white text-xs uppercase tracking-widest px-3 py-1 font-semibold"
+              >
                 Rupture de Stock
               </span>
             }
@@ -76,7 +79,9 @@
             <!-- Colors Swatches -->
             @if (prod.colors && prod.colors.length > 0) {
               <div>
-                <span class="text-xs font-semibold tracking-wider uppercase text-gray-900 block mb-3">
+                <span
+                  class="text-xs font-semibold tracking-wider uppercase text-gray-900 block mb-3"
+                >
                   Couleur
                 </span>
                 <div class="flex items-center gap-3">
@@ -92,7 +97,10 @@
                       [title]="color"
                     >
                       @if (selectedColor() === color) {
-                        <span class="w-2 h-2 rounded-full" [style.backgroundColor]="color === '#FFFFFF' ? '#000' : '#FFF'"></span>
+                        <span
+                          class="w-2 h-2 rounded-full"
+                          [style.backgroundColor]="color === '#FFFFFF' ? '#000' : '#FFF'"
+                        ></span>
                       }
                     </button>
                   }
@@ -107,7 +115,10 @@
                   <span class="text-xs font-semibold tracking-wider uppercase text-gray-900">
                     Taille
                   </span>
-                  <button type="button" class="text-xs text-amber-600 hover:underline font-light cursor-pointer">
+                  <button
+                    type="button"
+                    class="text-xs text-amber-600 hover:underline font-light cursor-pointer"
+                  >
                     Guide des tailles
                   </button>
                 </div>
@@ -200,27 +211,30 @@
                 Livraison & Retours
               </button>
             </div>
-            
+
             <div class="py-6 text-sm font-light text-gray-600 leading-relaxed">
               @if (activeTab() === 'description') {
                 <ul class="list-disc pl-5 flex flex-col gap-2">
                   <li>Matières premières de première qualité</li>
                   <li>Conception soignée et coutures renforcées</li>
-                  <li>Entretien : Nettoyage à sec recommandé pour conserver la texture d'origine</li>
+                  <li>
+                    Entretien : Nettoyage à sec recommandé pour conserver la texture d'origine
+                  </li>
                   <li>Origine : Conçu dans nos ateliers de stylisme</li>
                 </ul>
               } @else if (activeTab() === 'shipping') {
                 <p class="mb-3">
-                  Nous offrons la livraison standard gratuite sur toutes les commandes de plus de 100 000 FCFA.
+                  Nous offrons la livraison standard gratuite sur toutes les commandes de plus de
+                  100 000 FCFA.
                 </p>
                 <p>
-                  Les retours sont acceptés dans les 14 jours suivant la réception de votre colis. L'article doit être inutilisé et muni de toutes ses étiquettes d'origine.
+                  Les retours sont acceptés dans les 14 jours suivant la réception de votre colis.
+                  L'article doit être inutilisé et muni de toutes ses étiquettes d'origine.
                 </p>
               }
             </div>
           </div>
         </div>
-
       </div>
     </div>
   } @else {

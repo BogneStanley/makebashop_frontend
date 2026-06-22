@@ -1,5 +1,5 @@
 <div class="h-20"></div>
-<header class="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-100 h-20">
+<header class="fixed top-0 left-0 right-0 z-10 bg-[#faf6f0]/80 backdrop-blur-md border-b border-amber-100/40 h-20">
   <div class="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
     <!-- Mobile: Logo on left, icons on right -->
     <div class="flex items-center md:hidden">
@@ -70,7 +70,7 @@
 
   <!-- Mobile Menu Overlay -->
   <div
-    class="fixed inset-0 bg-white bg-opacity-100 z-40 md:hidden transition-opacity duration-300"
+    class="fixed inset-0 bg-[#faf6f0] bg-opacity-100 z-40 md:hidden transition-opacity duration-300"
     [class.pointer-events-none]="!isMenuOpen()"
     [class.opacity-0]="!isMenuOpen()"
     [class.opacity-100]="isMenuOpen()"
@@ -78,7 +78,7 @@
 
   <!-- Mobile Menu -->
   <nav
-    class="fixed left-0 right-0 bg-white md:hidden z-50 transform transition-transform duration-300 ease-in-out border-b border-gray-200"
+    class="fixed left-0 right-0 bg-[#faf6f0] md:hidden z-50 transform transition-transform duration-300 ease-in-out border-b border-amber-100/40"
     [class.translate-x-full]="!isMenuOpen()"
     [class.translate-x-0]="isMenuOpen()"
   >
