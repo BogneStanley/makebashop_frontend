@@ -1,0 +1,38 @@
+/* Custom PrimeNG overrides for Cart page */
+:host ::ng-deep {
+  .p-inputnumber {
+    height: 2.4rem;
+  }
+
+  .p-inputnumber-button {
+    background: #ffffff !important;
+    color: #4b5563 !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0 !important;
+    padding: 0.3rem 0.6rem !important;
+    transition: background-color 0.2s;
+  }
+
+  .p-inputnumber-button:hover {
+    background: #f9fafb !important;
+  }
+
+  .p-inputnumber-input {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0 !important;
+    text-align: center !important;
+    width: 2.5rem !important;
+    font-weight: 300 !important;
+    box-shadow: none !important;
+    padding: 0.3rem 0 !important;
+  }
+
+  .p-inputnumber-input:focus {
+    outline: none !important;
+    border-color: #d97706 !important;
+  }
+
+  .p-button {
+    font-family: inherit;
+  }
+}

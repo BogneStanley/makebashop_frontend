@@ -2,7 +2,7 @@
 <header class="fixed top-0 left-0 right-0 z-10 bg-[#faf6f0]/80 backdrop-blur-md border-b border-amber-100/40 h-20">
   <div class="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
     <!-- Mobile: Logo on left, icons on right -->
-<div class="flex items-center md:hidden">
+    <div class="flex items-center md:hidden">
        <a routerLink="/" class="text-2xl font-bold tracking-wider">
          <img src="/logo_name_black.png" alt="MAKEBA" class="h-8" />
        </a>
@@ -17,6 +17,7 @@
         [severity]="'secondary'"
         size="large"
         ariaLabel="Panier"
+        (onClick)="toggleCart()"
       >
         @if (cartItemsCount() > 0) {
           <span class="ml-2 text-sm font-medium">{{ cartItemsCount() }}</span>
@@ -48,7 +49,7 @@
       >
     </nav>
 
-<!-- Desktop: Centered logo -->
+    <!-- Desktop: Centered logo -->
      <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2">
        <a routerLink="/" class="text-2xl font-bold tracking-wider">
          <img src="/logo_name_black.png" alt="MAKEBA" class="h-8" />
@@ -64,6 +65,7 @@
         [severity]="'secondary'"
         size="large"
         ariaLabel="Panier"
+        (onClick)="toggleCart()"
       >
         @if (cartItemsCount() > 0) {
           <span class="ml-2 text-sm font-medium">{{ cartItemsCount() }}</span>
@@ -113,3 +115,8 @@
     </div>
   </nav>
 </header>
+
+<app-cart-sidebar
+  [visible]="isCartOpen()"
+  (onClose)="closeCart()"
+></app-cart-sidebar>

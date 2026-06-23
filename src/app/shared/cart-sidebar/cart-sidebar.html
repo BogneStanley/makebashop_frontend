@@ -1,0 +1,111 @@
+<p-drawer
+  [visible]="visible()"
+  (onHide)="close()"
+  position="right"
+  [modal]="true"
+  [dismissible]="true"
+  [style]="{ width: '420px' }"
+  [closable]="false"
+>
+  <div class="flex flex-col h-full">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+      <h2 class="text-lg font-semibold tracking-wide text-gray-900">Votre Panier</h2>
+      <p-button
+        icon="pi pi-times"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        size="large"
+        ariaLabel="Fermer le panier"
+        (onClick)="close()"
+      ></p-button>
+    </div>
+
+    <!-- Empty State -->
+    @if (cartItems.length === 0) {
+      <div class="flex-1 flex flex-col items-center justify-center text-center">
+        <i class="pi pi-shopping-cart text-5xl text-gray-300 mb-4"></i>
+        <p class="text-sm font-light text-gray-500">Votre panier est vide</p>
+      </div>
+    } @else {
+      <!-- Items List -->
+      <div class="flex-1 overflow-y-auto -mx-4 px-4">
+        @for (item of cartItems; track item.id) {
+          <div class="flex gap-4 mb-5 pb-5 border-b border-gray-100">
+            <img
+              [src]="item.product.image"
+              [alt]="item.product.name"
+              class="w-20 h-24 object-cover bg-gray-50"
+            />
+            <div class="flex-1 flex flex-col">
+              <div class="flex items-start justify-between gap-2">
+                <h3 class="text-sm font-medium text-gray-900 leading-tight">
+                  {{ item.product.name }}
+                </h3>
+                <p-button
+                  icon="pi pi-trash"
+                  [text]="true"
+                  severity="danger"
+                  size="small"
+                  ariaLabel="Supprimer"
+                  (onClick)="removeItem(item.id)"
+                ></p-button>
+              </div>
+              @if (item.selectedSize) {
+                <p class="text-xs text-gray-500 mt-1">Taille: {{ item.selectedSize }}</p>
+              }
+              @if (item.selectedColor) {
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-xs text-gray-500">Couleur:</span>
+                  <span
+                    class="w-3 h-3 rounded-full border border-gray-200"
+                    [style.backgroundColor]="item.selectedColor"
+                  ></span>
+                </div>
+              }
+              <div class="flex items-center justify-between mt-auto pt-3">
+                <p-inputNumber
+                  [ngModel]="item.quantity"
+                  (ngModelChange)="onQuantityChange(item.id, $event)"
+                  [showButtons]="true"
+                  buttonLayout="horizontal"
+                  spinnerMode="horizontal"
+                  [min]="1"
+                  [max]="item.product.stock || 1"
+                  size="small"
+                  class="w-24"
+                ></p-inputNumber>
+                <p class="text-sm font-semibold text-gray-900">
+                  {{
+                    item.product.price * item.quantity
+                      | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR'
+                  }}
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      <div class="border-t border-gray-100 pt-4 mt-2">
+        <div class="flex justify-between mb-1">
+          <span class="text-sm font-light text-gray-600">Sous-total</span>
+          <span class="text-sm font-semibold text-gray-900">
+            {{ cartTotal | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
+          </span>
+        </div>
+        <p class="text-xs text-gray-500 mb-4">Livraison calculée à l'étape suivante</p>
+        <button
+          pButton
+          type="button"
+          label="Voir le panier"
+          icon="pi pi-arrow-right"
+          class="w-full bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-sm uppercase tracking-wider font-semibold"
+          (click)="navigateToCart()"
+        ></button>
+      </div>
+    }
+  </div>
+</p-drawer>

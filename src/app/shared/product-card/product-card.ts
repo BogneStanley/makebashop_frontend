@@ -1,9 +1,10 @@
-import { Component, input, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CurrencyPipe } from '@angular/common';
 import { RouterModule, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { CartService } from '../../core/services/cart.service';
 import { Product } from '../../core/services/product.service';
 
 @Component({
@@ -13,6 +14,8 @@ import { Product } from '../../core/services/product.service';
   styleUrl: './product-card.css',
 })
 export class ProductCard {
+  private cartService = inject(CartService);
+
   product = input.required<Product>();
   isHovered = signal(false);
 
@@ -40,7 +43,7 @@ export class ProductCard {
     this.isHovered.set(false);
   }
 
-  addToCart() {
-    // Will be connected to cart service
+  addToCart(): void {
+    this.cartService.addToCart(this.product(), 1);
   }
 }

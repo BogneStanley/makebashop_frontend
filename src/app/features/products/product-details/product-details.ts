@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Header } from '../../../shared/header/header';
 import { Footer } from '../../../shared/footer/footer';
 import { ProductService, Product } from '../../../core/services/product.service';
-
+import { CartService } from '../../../core/services/cart.service';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
 
@@ -26,6 +26,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 export class ProductDetails implements OnInit {
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
+  private cartService = inject(CartService);
 
   product = signal<Product | undefined>(undefined);
   selectedImage = signal<string>('');
@@ -72,12 +73,11 @@ export class ProductDetails implements OnInit {
     const prod = this.product();
     if (!prod) return;
 
-    console.log('Adding to cart:', {
-      product: prod,
-      color: this.selectedColor(),
-      size: this.selectedSize(),
-      quantity: this.quantity(),
-    });
-    // Will interface with global cart service in future
+    this.cartService.addToCart(
+      prod,
+      this.quantity(),
+      this.selectedSize(),
+      this.selectedColor()
+    );
   }
 }
