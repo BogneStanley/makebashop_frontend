@@ -26,6 +26,19 @@ const MyPreset = definePreset(Aura, {
       950: '{orange.950}',
     },
   },
+  components: {
+    button: {
+      root: {
+        borderRadius: '{border.radius.none}',
+        roundedBorderRadius: '{border.radius.none}',
+      },
+    },
+    inputnumber: {
+      button: {
+        borderRadius: '{border.radius.none}',
+      },
+    },
+  },
 });
 
 export const appConfig: ApplicationConfig = {
