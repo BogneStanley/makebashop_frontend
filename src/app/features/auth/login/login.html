@@ -1,0 +1,113 @@
+<main class="min-h-screen bg-[#faf6f0] flex flex-col">
+  <div class="border-b border-amber-100/50 py-10">
+    <div class="max-w-7xl mx-auto px-6">
+      <a routerLink="/" class="inline-block mb-6">
+        <img src="/logo_name_black.png" alt="MAKEBA" class="h-8" />
+      </a>
+      <span class="text-xs tracking-[0.3em] uppercase text-amber-600 font-semibold mb-2 block"
+        >Administration</span
+      >
+      <h1 class="text-4xl font-thin text-gray-900 tracking-wide">Connexion administrateur</h1>
+      <div class="w-16 h-0.5 bg-amber-600 mt-3"></div>
+    </div>
+  </div>
+
+  <div class="flex-1 max-w-md mx-auto px-6 py-16 w-full">
+    <div class="bg-white border border-gray-100 p-8 md:p-10">
+      <p class="text-sm font-light text-gray-500 mb-8 leading-relaxed text-center">
+        Accès réservé aux administrateurs Makeba pour gérer le catalogue, les commandes et le contenu de la boutique.
+      </p>
+
+      @if (loginError()) {
+        <div
+          role="alert"
+          class="mb-6 px-4 py-3 border border-red-200 bg-red-50 text-sm text-red-700"
+        >
+          {{ loginError() }}
+        </div>
+      }
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="mb-6">
+          <label for="email" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">
+            Email administrateur
+          </label>
+          <input
+            id="email"
+            type="email"
+            pInputText
+            formControlName="email"
+            autocomplete="username"
+            placeholder="admin@makeba.cm"
+            class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
+            [class.border-red-400]="emailControl.invalid && emailControl.touched"
+            aria-describedby="email-error"
+          />
+          @if (emailControl.invalid && emailControl.touched) {
+            <p id="email-error" class="mt-2 text-xs text-red-600">
+              @if (emailControl.errors?.['required']) {
+                L'email administrateur est requis.
+              } @else if (emailControl.errors?.['email']) {
+                Veuillez saisir une adresse email valide.
+              }
+            </p>
+          }
+        </div>
+
+        <div class="mb-6">
+          <label for="password" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">
+            Mot de passe
+          </label>
+          <p-password
+            inputId="password"
+            formControlName="password"
+            [toggleMask]="true"
+            [feedback]="false"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            styleClass="w-full"
+            inputStyleClass="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
+            [class.border-red-400]="passwordControl.invalid && passwordControl.touched"
+            ariaDescribedBy="password-error"
+          ></p-password>
+          @if (passwordControl.invalid && passwordControl.touched) {
+            <p id="password-error" class="mt-2 text-xs text-red-600">
+              @if (passwordControl.errors?.['required']) {
+                Le mot de passe est requis.
+              } @else if (passwordControl.errors?.['minlength']) {
+                Le mot de passe doit contenir au moins 6 caractères.
+              }
+            </p>
+          }
+        </div>
+
+        <div class="flex items-center mb-8">
+          <div class="flex items-center gap-3">
+            <p-checkbox
+              formControlName="rememberMe"
+              inputId="rememberMe"
+              [binary]="true"
+            ></p-checkbox>
+            <label for="rememberMe" class="text-sm font-light text-gray-600 cursor-pointer select-none">
+              Rester connecté sur cet appareil
+            </label>
+          </div>
+        </div>
+
+        <button
+          pButton
+          type="submit"
+          label="Accéder à l'administration"
+          icon="pi pi-lock"
+          [loading]="isSubmitting()"
+          [disabled]="isSubmitting()"
+          class="w-full bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-sm uppercase tracking-wider font-semibold"
+        ></button>
+      </form>
+    </div>
+
+    <p class="text-center mt-8 text-xs font-light text-gray-400">
+      Cet espace est réservé au personnel autorisé.
+    </p>
+  </div>
+</main>

@@ -1,0 +1,121 @@
+---
+description: Utiliser PrimeNG v21 au maximum — docs officielles, composants, thème et conventions du projet
+globs: src/**/*.{ts,html,css,scss}
+alwaysApply: false
+---
+
+# PrimeNG — règles du projet
+
+Ce projet utilise **PrimeNG 21** avec **@primeuix/themes** (preset Aura personnalisé, primaire orange). Toujours **préférer un composant PrimeNG** à une implémentation HTML/CSS custom pour boutons, formulaires, overlays, tableaux, feedback, navigation, etc.
+
+## Consulter la documentation (obligatoire avant d'implémenter)
+
+1. **Index LLM** : `https://primeng.org/llms/llms.txt`
+2. **Pour lire une page** : ajouter **`.md`** à la fin de l'URL (sans query string).
+   - `https://primeng.org/button` → `https://primeng.org/button.md`
+   - `https://primeng.org/theming/styled` → `https://primeng.org/theming/styled.md`
+3. **Avant d'écrire du code** : fetch la page `.md` du composant ou guide concerné pour connaître imports, API, exemples et accessibilité.
+
+### Guides essentiels (.md)
+
+| Sujet | URL |
+|-------|-----|
+| Installation | `https://primeng.org/installation.md` |
+| Configuration | `https://primeng.org/configuration.md` |
+| Thème (Styled) | `https://primeng.org/theming/styled.md` |
+| Pass Through | `https://primeng.org/passthrough.md` |
+| Tailwind CSS | `https://primeng.org/tailwind.md` |
+| Icônes | `https://primeng.org/icons.md` |
+| Accessibilité | `https://primeng.org/guides/accessibility.md` |
+| Migration v21 | `https://primeng.org/migration/v21.md` |
+
+## Configuration projet (ne pas dupliquer)
+
+- Thème global : `providePrimeNG()` dans `src/app/app.config.ts` avec preset Aura + couleur primaire orange.
+- Icônes : `@import "primeicons/primeicons.css"` dans `src/styles.css`.
+- Layout / spacing : **Tailwind CSS**. Composants interactifs : **PrimeNG**.
+
+## Imports et usage Angular
+
+```typescript
+// ✅ Importer le module du composant dans imports[] du @Component standalone
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+```
+
+```html
+<!-- ✅ Directive sur élément natif -->
+<input pInputText formControlName="email" class="w-full" />
+
+<!-- ✅ Composant PrimeNG -->
+<p-button label="Valider" icon="pi pi-check" (onClick)="save()" />
+<button pButton type="submit" label="Envoyer" icon="pi pi-sign-in" [loading]="loading()" />
+```
+
+- Ne pas recréer un modal, drawer, toast, dialog, menu, paginator, etc. si PrimeNG le propose.
+- Vérifier dans `llms.txt` si un composant existe avant de coder une alternative.
+
+## Choix de composants (priorité PrimeNG)
+
+| Besoin | Composant PrimeNG |
+|--------|-------------------|
+| Bouton / action | `Button`, `SplitButton`, `SpeedDial` |
+| Texte / nombre / date | `InputText`, `InputNumber`, `DatePicker`, `Password`, `Textarea` |
+| Sélection | `Select`, `MultiSelect`, `Checkbox`, `RadioButton`, `ToggleSwitch` |
+| Liste / tri / filtre | `DataView`, `Table`, `Paginator`, `OrderList`, `PickList` |
+| Overlay | `Dialog`, `Drawer`, `Popover`, `ConfirmDialog`, `DynamicDialog` |
+| Feedback | `Toast`, `Message`, `ProgressBar`, `ProgressSpinner`, `Skeleton` |
+| Navigation | `Breadcrumb`, `Menu`, `Menubar`, `Tabs`, `Stepper` |
+| Conteneur | `Card`, `Panel`, `Fieldset`, `Toolbar` |
+| Média | `Image`, `Galleria`, `Carousel` |
+
+## Styling et personnalisation
+
+1. **Classes Tailwind** sur l'élément ou via `styleClass` / `inputStyleClass` / `panelStyleClass`.
+2. **Thème** : ajuster le preset `@primeuix/themes` dans `app.config.ts` plutôt que surcharger en masse.
+3. **Pass Through (`pt`)** : pour cibler les sous-éléments internes (voir `passthrough.md`).
+4. **Overrides CSS** : cibler les classes `.p-*` dans le CSS du composant (pattern déjà utilisé dans cart, product-search, product-details).
+
+```css
+/* ✅ Override local ciblé */
+:host ::ng-deep .p-inputnumber-input {
+  border-radius: 0;
+}
+```
+
+Éviter les overrides globaux agressifs qui cassent d'autres pages.
+
+## Formulaires
+
+- **Reactive Forms** (`FormGroup`, `formControlName`) — aligné avec les règles Angular du projet.
+- Associer chaque contrôle à un `<label for="...">` et `inputId` sur le composant PrimeNG.
+- Messages d'erreur : `@if` + `role="alert"` ou `p-message` pour les erreurs serveur.
+- Utiliser les props d'accessibilité documentées (`ariaLabel`, `ariaDescribedBy`, etc.).
+
+## Icônes
+
+- Bibliothèque par défaut : **PrimeIcons** (`pi pi-search`, `pi pi-shopping-cart`, …).
+- Sur `p-button` : prop `icon` ou contenu `<i class="pi pi-...">` selon la doc du composant.
+
+## Accessibilité
+
+- Respecter `https://primeng.org/guides/accessibility.md` (WCAG 2.1 AA).
+- Ne pas retirer le focus trap / dismiss des overlays (`Dialog`, `Drawer`) sans alternative.
+- Boutons icône seuls : toujours `ariaLabel`.
+
+## Anti-patterns
+
+- ❌ `<button class="...">` custom pour une action standard → `p-button` / `pButton`
+- ❌ `<input type="checkbox">` nu → `p-checkbox`
+- ❌ `<select>` HTML → `p-select`
+- ❌ Modal / sidebar maison → `p-dialog` / `p-drawer`
+- ❌ Deviner l'API PrimeNG sans lire la doc `.md`
+- ❌ Importer depuis des chemins obsolètes ou copier des exemples v19/v20 sans vérifier `migration/v21.md`
+
+## Workflow agent
+
+1. Identifier le besoin UI.
+2. Chercher le composant dans `llms.txt`.
+3. Lire `https://primeng.org/<composant>.md`.
+4. Importer le module, copier le pattern doc, adapter Tailwind + preset du projet.
+5. Vérifier a11y et reactive forms.
