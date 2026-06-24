@@ -58,7 +58,7 @@ export class Login {
     this.isSubmitting.set(false);
 
     if (result.success) {
-      await this.router.navigate(['/']);
+      await this.router.navigate(['/manage/dashboard']);
       return;
     }
 

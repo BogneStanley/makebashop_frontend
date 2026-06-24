@@ -1,0 +1,70 @@
+<aside
+  class="admin-sidebar fixed top-0 left-0 z-50 flex h-full w-64 -translate-x-full flex-col bg-[#1a1008] text-amber-100/70 transition-transform duration-300 ease-in-out lg:translate-x-0"
+  [class.translate-x-0]="isOpen()"
+  aria-label="Navigation administration"
+>
+  <div class="flex items-center justify-between border-b border-amber-900/30 px-5 py-5">
+    <a routerLink="/manage/dashboard" (click)="onNavClick()" class="inline-block">
+      <img src="/logo_name_white.png" alt="MAKEBA" class="h-7" />
+    </a>
+    <p-button
+      icon="pi pi-times"
+      [rounded]="true"
+      [text]="true"
+      severity="secondary"
+      size="small"
+      ariaLabel="Fermer le menu"
+      class="lg:hidden"
+      (onClick)="closeSidebar.emit()"
+    ></p-button>
+  </div>
+
+  <div class="px-5 py-4 border-b border-amber-900/30">
+    <span class="text-[10px] tracking-[0.25em] uppercase text-amber-600 font-semibold block mb-1">
+      Administration
+    </span>
+    <p class="text-sm font-light text-amber-100/50 truncate">
+      {{ currentUser()?.email }}
+    </p>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-3 py-4">
+    <ul class="space-y-1">
+      @for (item of navItems; track item.route) {
+        <li>
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="admin-nav-active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="onNavClick()"
+            class="admin-nav-link flex items-center gap-3 px-3 py-2.5 text-sm font-light transition-colors"
+          >
+            <i [class]="item.icon + ' text-xs'"></i>
+            {{ item.label }}
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <div class="border-t border-amber-900/30 p-4 space-y-2">
+    <a
+      routerLink="/"
+      (click)="onNavClick()"
+      class="flex items-center gap-3 px-3 py-2 text-xs font-light text-amber-100/50 hover:text-amber-400 transition-colors"
+    >
+      <i class="pi pi-external-link text-xs"></i>
+      Voir la boutique
+    </a>
+    <button
+      pButton
+      type="button"
+      label="Déconnexion"
+      icon="pi pi-sign-out"
+      [text]="true"
+      severity="secondary"
+      class="w-full justify-start text-xs"
+      (onClick)="logout()"
+    ></button>
+  </div>
+</aside>

@@ -1,0 +1,34 @@
+<div class="min-h-screen bg-[#faf6f0]">
+  @if (isSidebarOpen()) {
+    <button
+      type="button"
+      class="fixed inset-0 z-40 bg-black/40 lg:hidden"
+      aria-label="Fermer le menu"
+      (click)="closeSidebar()"
+    ></button>
+  }
+
+  <app-admin-sidebar [isOpen]="isSidebarOpen()" (closeSidebar)="closeSidebar()" />
+
+  <div class="flex min-h-screen flex-col lg:pl-64">
+    <header
+      class="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-amber-100/50 bg-[#faf6f0]/90 px-4 backdrop-blur-md lg:hidden"
+    >
+      <p-button
+        icon="pi pi-bars"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        size="large"
+        ariaLabel="Ouvrir le menu"
+        (onClick)="toggleSidebar()"
+      ></p-button>
+      <img src="/logo_name_black.png" alt="MAKEBA" class="h-7" />
+      <div class="w-10"></div>
+    </header>
+
+    <main class="flex-1">
+      <router-outlet />
+    </main>
+  </div>
+</div>
