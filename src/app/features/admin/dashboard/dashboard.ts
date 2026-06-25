@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 interface DashboardStat {
@@ -10,6 +11,7 @@ interface DashboardStat {
 
 @Component({
   selector: 'app-dashboard',
+  imports: [RouterModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

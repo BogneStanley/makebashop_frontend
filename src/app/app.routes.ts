@@ -42,6 +42,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/dashboard/dashboard').then((m) => m.Dashboard),
       },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('./features/admin/categories/category-list').then((m) => m.CategoryList),
+      },
     ],
   },
   {
