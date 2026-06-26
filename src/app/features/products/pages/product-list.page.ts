@@ -5,21 +5,26 @@ import {
   inject,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
-import {
-  ProductListItemView,
-  toActiveFilterValue,
-  toProductListItemView,
-} from '../../../core/models/products/product.models';
-import { mockProductListItems } from '../../../core/models/products/product.mock';
+import { CategoryResponse } from '../../../core/models/products/product-response.models';
+import { ProductListItemView, toProductListItemView } from '../../../core/models/products/product.models';
+import { mockCategories, mockProductListItems } from '../../../core/models/products/product.mock';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/confirm-dialog/confirm-dialog';
-import { ProductFilters } from '../components/product-filters/product-filters';
+import { ProductFilters, ProductListFilters } from '../components/product-filters/product-filters';
 import { ProductTable } from '../components/product-table/product-table';
+
+function getMinVariantPrice(product: ProductListItemView): number {
+  if (product.productVariants.length === 0) {
+    return 0;
+  }
+  return Math.min(...product.productVariants.map((variant) => variant.price.amount));
+}
 
 @Component({
   selector: 'app-product-list-page',
@@ -40,6 +45,9 @@ export class ProductListPage implements OnInit {
   private router = inject(Router);
   private notifications = inject(NotificationService);
 
+  productFilters = viewChild(ProductFilters);
+  categories = mockCategories;
+
   private allProducts = signal<ProductListItemView[]>(
     mockProductListItems.map((product) => ({ ...product })),
   );
@@ -48,26 +56,35 @@ export class ProductListPage implements OnInit {
   error = signal<string | null>(null);
   page = signal(0);
   pageSize = signal(5);
-  filters = signal({
-    name: '',
-    activeFilter: 'all' as 'all' | 'active' | 'inactive',
-    inStock: null as boolean | null,
-  });
+  filters = signal<ProductListFilters>({ name: '' });
 
   confirmVisible = signal(false);
   confirmData = signal<ConfirmDialogData | null>(null);
   private pendingDeleteId = signal<number | null>(null);
 
   filteredProducts = computed(() => {
-    const { name, activeFilter, inStock } = this.filters();
-    const activeValue = toActiveFilterValue(activeFilter);
+    const { name, minPrice, maxPrice, inStock, isActive, categoryIds } = this.filters();
 
     return this.allProducts().filter((product) => {
       const matchesName = !name || product.name.toLowerCase().includes(name.toLowerCase());
-      const matchesActive = activeValue === undefined || product.isActive === activeValue;
+      const price = getMinVariantPrice(product);
+      const matchesMinPrice = minPrice === undefined || price >= minPrice;
+      const matchesMaxPrice = maxPrice === undefined || price <= maxPrice;
+      const matchesActive = isActive === undefined || product.isActive === isActive;
       const matchesStock =
-        inStock === null || (inStock ? product.totalStock > 0 : product.totalStock === 0);
-      return matchesName && matchesActive && matchesStock;
+        inStock === undefined || (inStock ? product.totalStock > 0 : product.totalStock === 0);
+      const matchesCategories =
+        !categoryIds?.length ||
+        product.categories.some((category) => categoryIds.includes(category.id));
+
+      return (
+        matchesName &&
+        matchesMinPrice &&
+        matchesMaxPrice &&
+        matchesActive &&
+        matchesStock &&
+        matchesCategories
+      );
     });
   });
 
@@ -78,17 +95,19 @@ export class ProductListPage implements OnInit {
     return this.filteredProducts().slice(start, start + this.pageSize());
   });
 
+  activeFilterLabels = computed(() => this.buildActiveFilterLabels(this.filters()));
+
   ngOnInit(): void {
     setTimeout(() => this.loading.set(false), 400);
   }
 
-  onFiltersChange(filters: {
-    name: string;
-    activeFilter: 'all' | 'active' | 'inactive';
-    inStock: boolean | null;
-  }): void {
+  onFiltersChange(filters: ProductListFilters): void {
     this.filters.set(filters);
     this.page.set(0);
+  }
+
+  clearAllFilters(): void {
+    this.productFilters()?.resetAll();
   }
 
   onPageChange(event: PaginatorState): void {
@@ -142,5 +161,36 @@ export class ProductListPage implements OnInit {
         item.id === productId ? toProductListItemView({ ...item, isActive }) : item,
       ),
     );
+  }
+
+  private buildActiveFilterLabels(filters: ProductListFilters): string[] {
+    const labels: string[] = [];
+    const priceFormat = new Intl.NumberFormat('fr-FR');
+
+    if (filters.name) {
+      labels.push(`Nom : « ${filters.name} »`);
+    }
+    if (filters.minPrice !== undefined) {
+      labels.push(`Prix min : ${priceFormat.format(filters.minPrice)} FCFA`);
+    }
+    if (filters.maxPrice !== undefined) {
+      labels.push(`Prix max : ${priceFormat.format(filters.maxPrice)} FCFA`);
+    }
+    if (filters.isActive !== undefined) {
+      labels.push(filters.isActive ? 'Statut : Actif' : 'Statut : Inactif');
+    }
+    if (filters.inStock !== undefined) {
+      labels.push(filters.inStock ? 'En stock' : 'Rupture de stock');
+    }
+    if (filters.categoryIds?.length) {
+      const names = this.categories
+        .filter((category: CategoryResponse) => filters.categoryIds!.includes(category.id))
+        .map((category) => category.name);
+      if (names.length) {
+        labels.push(`Catégories : ${names.join(', ')}`);
+      }
+    }
+
+    return labels;
   }
 }

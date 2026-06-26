@@ -3,13 +3,14 @@ import { ButtonModule } from 'primeng/button';
 import { Menu, MenuModule } from 'primeng/menu';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
 import { MenuItem } from 'primeng/api';
 import { ProductListItemView } from '../../../../core/models/products/product.models';
 import { ProductStatusBadge } from '../product-status-badge/product-status-badge';
 
 @Component({
   selector: 'app-product-table',
-  imports: [TableModule, ButtonModule, MenuModule, SkeletonModule, ProductStatusBadge],
+  imports: [TableModule, ButtonModule, MenuModule, SkeletonModule, TagModule, ProductStatusBadge],
   templateUrl: './product-table.html',
   styleUrl: './product-table.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -17,11 +18,13 @@ import { ProductStatusBadge } from '../product-status-badge/product-status-badge
 export class ProductTable {
   products = input.required<ProductListItemView[]>();
   loading = input(false);
+  activeFilters = input<string[]>([]);
 
   edit = output<number>();
   activate = output<number>();
   deactivate = output<number>();
   delete = output<number>();
+  clearFilters = output<void>();
 
   menu = viewChild.required<Menu>('actionMenu');
   menuItems: MenuItem[] = [];

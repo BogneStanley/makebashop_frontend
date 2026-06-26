@@ -1,31 +1,78 @@
-<div class="border border-gray-100 bg-white p-4 md:p-5">
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 lg:items-end">
-    <div class="lg:col-span-2">
-      <label for="product-filter-name" class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">
-        Nom
-      </label>
-      <input
-        id="product-filter-name"
-        type="text"
-        pInputText
-        [ngModel]="name()"
-        (ngModelChange)="name.set($event)"
-        (keyup.enter)="onSearch()"
-        placeholder="Rechercher par nom…"
-        class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
-        [disabled]="disabled()"
-      />
+<div class="flex flex-col gap-3 border border-gray-100 bg-white p-4 md:flex-row md:items-center md:justify-between md:p-5">
+  <p-iconfield class="w-full md:max-w-md">
+    <p-inputicon class="pi pi-search" />
+    <input
+      type="text"
+      pInputText
+      [ngModel]="name()"
+      (ngModelChange)="onNameChange($event)"
+      placeholder="Rechercher par nom…"
+      class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
+      [disabled]="disabled()"
+    />
+  </p-iconfield>
+
+  <p-button
+    label="Filtres"
+    icon="pi pi-filter"
+    severity="secondary"
+    [outlined]="true"
+    styleClass="self-start rounded-0 text-xs uppercase tracking-wider font-semibold md:self-auto"
+    [disabled]="disabled()"
+    (onClick)="openDrawer()"
+  />
+</div>
+
+<p-drawer
+  header="Filtres avancés"
+  position="right"
+  [modal]="true"
+  appendTo="body"
+  [visible]="drawerOpen()"
+  [style]="{ width: '28rem' }"
+  styleClass="product-filters-drawer"
+  (onHide)="closeDrawer()"
+>
+  <div class="space-y-5">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">
+          Prix min (FCFA)
+        </label>
+        <p-inputnumber
+          [ngModel]="minPrice()"
+          (ngModelChange)="minPrice.set($event)"
+          [min]="0"
+          placeholder="Min"
+          styleClass="w-full"
+          inputStyleClass="w-full rounded-0 text-sm"
+          [disabled]="disabled()"
+        />
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">
+          Prix max (FCFA)
+        </label>
+        <p-inputnumber
+          [ngModel]="maxPrice()"
+          (ngModelChange)="maxPrice.set($event)"
+          [min]="0"
+          placeholder="Max"
+          styleClass="w-full"
+          inputStyleClass="w-full rounded-0 text-sm"
+          [disabled]="disabled()"
+        />
+      </div>
     </div>
 
     <div>
-      <label for="product-filter-status" class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">
+      <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">
         Statut
       </label>
       <p-select
-        inputId="product-filter-status"
         [options]="activeFilterOptions"
-        [ngModel]="activeFilter()"
-        (ngModelChange)="activeFilter.set($event); emitFilters()"
+        [ngModel]="isActiveFilter()"
+        (ngModelChange)="isActiveFilter.set($event)"
         optionLabel="label"
         optionValue="value"
         styleClass="w-full"
@@ -33,51 +80,80 @@
       />
     </div>
 
-    <div class="flex flex-col gap-3">
+    <div class="space-y-3 border border-gray-100 p-4">
       <div class="flex items-center gap-2">
         <p-checkbox
-          inputId="product-filter-instock-enable"
+          inputId="filter-instock-enable"
           [binary]="true"
-          [ngModel]="inStockFilterEnabled()"
-          (ngModelChange)="onInStockToggle($event)"
+          [ngModel]="inStockEnabled()"
+          (ngModelChange)="inStockEnabled.set($event)"
           [disabled]="disabled()"
         />
-        <label for="product-filter-instock-enable" class="text-sm font-light text-gray-700">
-          Filtrer par stock
+        <label for="filter-instock-enable" class="text-sm font-light text-gray-700">
+          Filtrer par disponibilité en stock
         </label>
       </div>
-      @if (inStockFilterEnabled()) {
-        <div class="flex items-center gap-2">
+      @if (inStockEnabled()) {
+        <div class="flex items-center gap-2 pl-6">
           <p-checkbox
-            inputId="product-filter-instock"
+            inputId="filter-instock"
             [binary]="true"
-            [ngModel]="inStockOnly()"
-            (ngModelChange)="inStockOnly.set($event); emitFilters()"
+            [ngModel]="inStock()"
+            (ngModelChange)="inStock.set($event)"
             [disabled]="disabled()"
           />
-          <label for="product-filter-instock" class="text-sm font-light text-gray-700">
+          <label for="filter-instock" class="text-sm font-light text-gray-700">
             En stock uniquement
           </label>
         </div>
       }
     </div>
+
+    <div>
+      <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">
+        Catégories
+      </label>
+      <p-multiselect
+        [ngModel]="categoryIds()"
+        (ngModelChange)="categoryIds.set($event)"
+        [options]="categories()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Toutes les catégories"
+        styleClass="w-full"
+        display="chip"
+        [disabled]="disabled()"
+      />
+    </div>
   </div>
 
-  <div class="mt-4 flex flex-wrap gap-2">
-    <p-button
-      label="Rechercher"
-      icon="pi pi-search"
-      styleClass="bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
-      [disabled]="disabled()"
-      (onClick)="onSearch()"
-    />
-    <p-button
-      label="Réinitialiser"
-      icon="pi pi-refresh"
-      severity="secondary"
-      [text]="true"
-      [disabled]="disabled()"
-      (onClick)="onReset()"
-    />
-  </div>
-</div>
+  <ng-template #footer>
+    <div class="flex justify-between gap-2">
+      <p-button
+        label="Réinitialiser"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [text]="true"
+        type="button"
+        [disabled]="disabled()"
+        (onClick)="resetDrawerFilters()"
+      />
+      <div class="flex gap-2">
+        <p-button
+          label="Annuler"
+          severity="secondary"
+          [text]="true"
+          type="button"
+          (onClick)="closeDrawer()"
+        />
+        <p-button
+          label="Appliquer"
+          icon="pi pi-check"
+          styleClass="bg-amber-600 border-amber-600 hover:bg-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
+          [disabled]="disabled()"
+          (onClick)="applyDrawerFilters()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-drawer>

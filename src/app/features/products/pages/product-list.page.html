@@ -26,15 +26,21 @@
       <p-message severity="error" [text]="error()!" styleClass="w-full" />
     }
 
-    <app-product-filters [disabled]="loading()" (filtersChange)="onFiltersChange($event)" />
+    <app-product-filters
+      [categories]="categories"
+      [disabled]="loading()"
+      (filtersChange)="onFiltersChange($event)"
+    />
 
     <app-product-table
       [products]="paginatedProducts()"
       [loading]="loading()"
+      [activeFilters]="activeFilterLabels()"
       (edit)="onEdit($event)"
       (activate)="onActivate($event)"
       (deactivate)="onDeactivate($event)"
       (delete)="onDeleteRequest($event)"
+      (clearFilters)="clearAllFilters()"
     />
 
     @if (!loading() && totalElements() > 0) {

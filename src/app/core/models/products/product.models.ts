@@ -10,6 +10,7 @@ export interface ManagedProductFilters extends PaginationParams {
   maxPrice?: number;
   inStock?: boolean;
   isActive?: boolean;
+  categoryIds?: number[];
 }
 
 export interface ProductListItemView extends ProductResponse {

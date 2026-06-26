@@ -17,6 +17,15 @@
           [disabled]="disabled()"
           (onClick)="openBulkEdit()"
         />
+        <p-button
+          [label]="'Supprimer la sélection (' + selectionCount() + ')'"
+          icon="pi pi-trash"
+          severity="danger"
+          [outlined]="true"
+          styleClass="rounded-0 text-xs uppercase tracking-wider font-semibold"
+          [disabled]="disabled() || !canBulkDelete()"
+          (onClick)="requestDeleteSelected()"
+        />
       }
       <p-button
         label="Ajouter un groupe"
@@ -124,4 +133,11 @@
   (createGroup)="onCreateGroup($event)"
   (saveVariant)="onSaveVariant($event)"
   (bulkUpdate)="onBulkUpdate($event)"
+/>
+
+<app-confirm-dialog
+  [visible]="confirmVisible()"
+  [data]="confirmData()"
+  (visibleChange)="confirmVisible.set($event)"
+  (confirm)="confirmDeleteSelected()"
 />

@@ -14,6 +14,7 @@ import { Menu, MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
 import { MenuItem } from 'primeng/api';
+import { ConfirmDialog, ConfirmDialogData } from '../../../../shared/confirm-dialog/confirm-dialog';
 import {
   ProductVariantDrawer,
   VariantDrawerMode,
@@ -34,6 +35,7 @@ import {
     MenuModule,
     MessageModule,
     ProductVariantDrawer,
+    ConfirmDialog,
   ],
   templateUrl: './product-variant-table.html',
   styleUrl: './product-variant-table.css',
@@ -60,12 +62,19 @@ export class ProductVariantTable {
   selectedIndices = signal<Set<number>>(new Set());
   menuItems: MenuItem[] = [];
 
+  confirmVisible = signal(false);
+  confirmData = signal<ConfirmDialogData | null>(null);
+
   canRemove = computed(() => this.variants().length > 1);
   allSelected = computed(
     () =>
       this.variants().length > 0 && this.selectedIndices().size === this.variants().length,
   );
   selectionCount = computed(() => this.selectedIndices().size);
+  canBulkDelete = computed(() => {
+    const selected = this.selectionCount();
+    return selected > 0 && this.variants().length - selected >= 1;
+  });
   isValid = computed(
     () => this.variants().length >= 1 && this.variants().every(isVariantValid),
   );
@@ -140,6 +149,27 @@ export class ProductVariantTable {
     );
     this.drawerVisible.set(false);
     this.selectedIndices.set(new Set());
+  }
+
+  requestDeleteSelected(): void {
+    if (!this.canBulkDelete()) {
+      return;
+    }
+    this.confirmData.set({
+      title: 'Supprimer les variantes',
+      message: `Supprimer ${this.selectionCount()} variante(s) sélectionnée(s) ?`,
+      confirmLabel: 'Supprimer',
+      destructive: true,
+    });
+    this.confirmVisible.set(true);
+  }
+
+  confirmDeleteSelected(): void {
+    const indices = [...this.selectedIndices()].sort((a, b) => b - a);
+
+    this.variantsChange.emit(this.variants().filter((_, index) => !indices.includes(index)));
+    this.selectedIndices.set(new Set());
+    this.confirmVisible.set(false);
   }
 
   removeVariant(index: number, variant: VariantRow): void {
