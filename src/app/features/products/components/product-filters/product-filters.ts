@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   input,
   OnDestroy,
   output,
@@ -48,6 +49,7 @@ export interface ProductListFilters {
 export class ProductFilters implements OnDestroy {
   categories = input.required<CategoryResponse[]>();
   disabled = input(false);
+  filters = input<ProductListFilters>({ name: '' });
 
   filtersChange = output<ProductListFilters>();
 
@@ -68,6 +70,12 @@ export class ProductFilters implements OnDestroy {
     { label: 'Actif', value: 'active' as const },
     { label: 'Inactif', value: 'inactive' as const },
   ];
+
+  constructor() {
+    effect(() => {
+      this.syncFromFilters(this.filters());
+    });
+  }
 
   ngOnDestroy(): void {
     clearTimeout(this.searchTimer);
@@ -102,17 +110,32 @@ export class ProductFilters implements OnDestroy {
     this.emitFilters();
   }
 
-  resetAll(): void {
+  private syncFromFilters(filters: ProductListFilters): void {
     clearTimeout(this.searchTimer);
-    this.name.set('');
-    this.minPrice.set(null);
-    this.maxPrice.set(null);
-    this.inStockEnabled.set(false);
-    this.inStock.set(true);
-    this.isActiveFilter.set('all');
-    this.categoryIds.set([]);
-    this.drawerOpen.set(false);
-    this.emitFilters();
+    this.name.set(filters.name);
+    this.minPrice.set(filters.minPrice ?? null);
+    this.maxPrice.set(filters.maxPrice ?? null);
+    this.inStockEnabled.set(filters.inStock !== undefined);
+    this.inStock.set(filters.inStock ?? true);
+    this.isActiveFilter.set(
+      filters.isActive === undefined ? 'all' : filters.isActive ? 'active' : 'inactive',
+    );
+    this.categoryIds.set(filters.categoryIds ? [...filters.categoryIds] : []);
+
+    if (this.isDefaultFilters(filters)) {
+      this.drawerOpen.set(false);
+    }
+  }
+
+  private isDefaultFilters(filters: ProductListFilters): boolean {
+    return (
+      !filters.name &&
+      filters.minPrice === undefined &&
+      filters.maxPrice === undefined &&
+      filters.inStock === undefined &&
+      filters.isActive === undefined &&
+      !filters.categoryIds?.length
+    );
   }
 
   private emitFilters(): void {

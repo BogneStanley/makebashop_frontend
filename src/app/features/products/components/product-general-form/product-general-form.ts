@@ -46,6 +46,7 @@ export class ProductGeneralForm {
     isActive: boolean;
     categoryIds: number[];
   }>();
+  validityChange = output<boolean>();
 
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.pattern(/\S+/)]],
@@ -72,6 +73,12 @@ export class ProductGeneralForm {
       } else {
         this.form.enable({ emitEvent: false });
       }
+
+      this.validityChange.emit(this.form.valid);
+    });
+
+    this.form.statusChanges.subscribe(() => {
+      this.validityChange.emit(this.form.valid);
     });
 
     this.form.valueChanges.subscribe(() => {
@@ -89,9 +96,5 @@ export class ProductGeneralForm {
 
   get categoryIdsControl() {
     return this.form.controls.categoryIds;
-  }
-
-  validate(): boolean {
-    return this.form.valid;
   }
 }

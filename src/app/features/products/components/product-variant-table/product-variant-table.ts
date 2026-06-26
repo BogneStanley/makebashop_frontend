@@ -50,7 +50,6 @@ export class ProductVariantTable {
   variantsChange = output<VariantRow[]>();
   deleteVariants = output<number[]>();
 
-  drawer = viewChild(ProductVariantDrawer);
   actionMenu = viewChild.required<Menu>('actionMenu');
 
   drawerVisible = signal(false);
@@ -208,10 +207,6 @@ export class ProductVariantTable {
 
   variantInvalid(variant: VariantRow): boolean {
     return this.showValidation() && !isVariantValid(variant);
-  }
-
-  validate(): boolean {
-    return this.isValid();
   }
 
   fieldLabel(key: keyof VariantRow): string {

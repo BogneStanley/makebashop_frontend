@@ -29,6 +29,7 @@
       [showValidation]="showValidation()"
       [disabled]="saving()"
       (valueChange)="onGeneralChange($event)"
+      (validityChange)="generalFormValid.set($event)"
     />
 
     <app-product-variant-table

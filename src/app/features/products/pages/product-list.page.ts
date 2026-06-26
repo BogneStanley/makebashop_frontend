@@ -5,7 +5,6 @@ import {
   inject,
   OnInit,
   signal,
-  viewChild,
 } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -45,7 +44,6 @@ export class ProductListPage implements OnInit {
   private router = inject(Router);
   private notifications = inject(NotificationService);
 
-  productFilters = viewChild(ProductFilters);
   categories = mockCategories;
 
   private allProducts = signal<ProductListItemView[]>(
@@ -107,7 +105,8 @@ export class ProductListPage implements OnInit {
   }
 
   clearAllFilters(): void {
-    this.productFilters()?.resetAll();
+    this.filters.set({ name: '' });
+    this.page.set(0);
   }
 
   onPageChange(event: PaginatorState): void {

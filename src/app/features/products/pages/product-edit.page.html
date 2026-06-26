@@ -41,6 +41,7 @@
                 [showValidation]="showGeneralValidation()"
                 [disabled]="saving()"
                 (valueChange)="general.set($event)"
+                (validityChange)="generalFormValid.set($event)"
               />
               <div class="flex justify-end border border-gray-100 bg-white p-4 md:p-5">
                 <p-button

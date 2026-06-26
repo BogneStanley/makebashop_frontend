@@ -1,10 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   OnInit,
   signal,
-  viewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -22,6 +22,7 @@ import { ProductEditHeader } from '../components/product-edit-header/product-edi
 import { ProductGeneralForm } from '../components/product-general-form/product-general-form';
 import { ProductImageGallery } from '../components/product-image-gallery/product-image-gallery';
 import { ProductVariantTable } from '../components/product-variant-table/product-variant-table';
+import { isVariantValid } from '../components/product-variant-table/variant-fields';
 
 @Component({
   selector: 'app-product-edit-page',
@@ -45,8 +46,6 @@ export class ProductEditPage implements OnInit {
   private notifications = inject(NotificationService);
 
   categories = mockCategories;
-  generalForm = viewChild(ProductGeneralForm);
-  variantTable = viewChild(ProductVariantTable);
 
   product = signal<ProductResponse | null>(null);
   activeTab = signal<'general' | 'variants' | 'images'>('general');
@@ -69,6 +68,11 @@ export class ProductEditPage implements OnInit {
 
   showGeneralValidation = signal(false);
   showVariantsValidation = signal(false);
+
+  generalFormValid = signal(false);
+  variantsValid = computed(
+    () => this.variants().length >= 1 && this.variants().every(isVariantValid),
+  );
 
   confirmVisible = signal(false);
   confirmData = signal<ConfirmDialogData | null>(null);
@@ -168,7 +172,7 @@ export class ProductEditPage implements OnInit {
 
   saveVariants(): void {
     this.showVariantsValidation.set(true);
-    if (!this.variantTable()?.validate()) {
+    if (!this.variantsValid()) {
       this.notifications.error('Veuillez corriger les erreurs des variantes.');
       return;
     }
@@ -206,7 +210,7 @@ export class ProductEditPage implements OnInit {
 
   saveGeneral(): void {
     this.showGeneralValidation.set(true);
-    if (!this.generalForm()?.validate()) {
+    if (!this.generalFormValid()) {
       this.notifications.error('Veuillez corriger les erreurs du formulaire.');
       return;
     }
