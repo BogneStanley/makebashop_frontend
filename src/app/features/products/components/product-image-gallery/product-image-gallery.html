@@ -1,0 +1,80 @@
+<div class="border border-gray-100 bg-white p-5 md:p-6">
+  <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-900">Galerie</h2>
+      <p class="mt-1 text-xs font-light text-gray-500">Glissez-déposez pour réordonner les images.</p>
+    </div>
+    <label
+      class="inline-flex cursor-pointer items-center gap-2 border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-amber-800 transition-colors hover:bg-amber-100"
+      [class.pointer-events-none]="disabled()"
+      [class.opacity-50]="disabled()"
+    >
+      <i class="pi pi-upload"></i>
+      Ajouter des images
+      <input type="file" accept="image/*" multiple class="hidden" [disabled]="disabled()" (change)="onFileSelect($event)" />
+    </label>
+  </div>
+
+  @if (images().length === 0) {
+    <div class="flex flex-col items-center justify-center border border-dashed border-gray-200 py-12 text-center">
+      <i class="pi pi-images mb-3 text-3xl text-gray-300"></i>
+      <p class="text-sm font-light text-gray-500">Aucune image pour ce produit.</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      @for (image of images(); track image.id ?? image.url ?? $index; let index = $index) {
+        <article
+          class="group relative border border-gray-100 bg-white"
+          draggable="true"
+          (dragstart)="onDragStart(index)"
+          (dragover)="onDragOver($event)"
+          (drop)="onDrop(index)"
+        >
+          @if (image.url) {
+            <img [src]="image.url" [alt]="image.name" class="aspect-square w-full object-cover" />
+          } @else {
+            <div class="flex aspect-square items-center justify-center bg-gray-50">
+              <i class="pi pi-image text-2xl text-gray-300"></i>
+            </div>
+          }
+
+          @if (image.isPrimary) {
+            <p-tag
+              value="Principale"
+              severity="warn"
+              styleClass="absolute left-2 top-2 text-[10px] uppercase tracking-wider font-semibold"
+            />
+          }
+
+          <div class="absolute inset-x-0 bottom-0 flex gap-1 bg-black/50 p-2 opacity-0 transition-opacity group-hover:opacity-100">
+            @if (!image.isPrimary && image.id) {
+              <p-button
+                label="Principale"
+                size="small"
+                styleClass="flex-1 text-[10px] uppercase"
+                [disabled]="disabled()"
+                (onClick)="onSetPrimary(image.id)"
+              />
+            }
+            @if (image.id) {
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                size="small"
+                [disabled]="disabled()"
+                (onClick)="openDeleteDialog(image.id)"
+              />
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>
+
+<app-confirm-dialog
+  [visible]="confirmVisible()"
+  [data]="confirmData()"
+  (visibleChange)="confirmVisible.set($event)"
+  (confirm)="confirmDelete()"
+/>

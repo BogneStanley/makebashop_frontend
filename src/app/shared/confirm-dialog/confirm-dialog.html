@@ -1,0 +1,29 @@
+<p-dialog
+  [header]="data()?.title ?? 'Confirmation'"
+  [modal]="true"
+  [visible]="visible()"
+  (visibleChange)="visibleChange.emit($event)"
+  [style]="{ width: '28rem' }"
+  [draggable]="false"
+  (onHide)="onHide()"
+>
+  <p class="text-sm font-light leading-relaxed text-gray-600">
+    {{ data()?.message }}
+  </p>
+
+  <div class="mt-6 flex justify-end gap-2">
+    <p-button
+      [label]="data()?.cancelLabel ?? 'Annuler'"
+      severity="secondary"
+      [text]="true"
+      type="button"
+      (onClick)="onHide()"
+    ></p-button>
+    <p-button
+      [label]="data()?.confirmLabel ?? 'Confirmer'"
+      [severity]="data()?.destructive ? 'danger' : 'primary'"
+      [icon]="data()?.destructive ? 'pi pi-trash' : 'pi pi-check'"
+      (onClick)="onConfirm()"
+    ></p-button>
+  </div>
+</p-dialog>

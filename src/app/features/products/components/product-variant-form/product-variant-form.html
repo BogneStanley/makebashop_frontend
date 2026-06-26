@@ -1,0 +1,42 @@
+<p-drawer
+  header="Modifier la variante"
+  position="right"
+  [modal]="true"
+  appendTo="body"
+  [visible]="visible()"
+  [style]="{ width: '28rem' }"
+  (onHide)="close()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" class="space-y-4">
+    <div>
+      <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">SKU</label>
+      <input type="text" pInputText formControlName="sku" class="w-full rounded-0 text-sm" />
+    </div>
+    <div>
+      <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">Prix</label>
+      <p-inputnumber formControlName="price" [min]="0" styleClass="w-full" />
+    </div>
+    <div>
+      <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">Stock</label>
+      <p-inputnumber formControlName="stockQuantity" [min]="0" styleClass="w-full" />
+    </div>
+    <div>
+      <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">Taille</label>
+      <input type="text" pInputText formControlName="size" class="w-full rounded-0 text-sm" />
+    </div>
+    <div>
+      <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">Couleur</label>
+      <input type="text" pInputText formControlName="color" class="w-full rounded-0 text-sm" />
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <p-button label="Annuler" severity="secondary" [text]="true" type="button" (onClick)="close()" />
+      <button
+        pButton
+        type="submit"
+        label="Enregistrer"
+        icon="pi pi-check"
+        class="bg-amber-600 border-amber-600 hover:bg-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
+      ></button>
+    </div>
+  </form>
+</p-drawer>

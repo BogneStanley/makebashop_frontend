@@ -1,0 +1,71 @@
+<form [formGroup]="form" class="space-y-5 border border-gray-100 bg-white p-5 md:p-6">
+  <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-900">Informations générales</h2>
+
+  <div>
+    <label for="product-name" class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">
+      Nom <span class="text-red-500">*</span>
+    </label>
+    <input
+      id="product-name"
+      type="text"
+      pInputText
+      formControlName="name"
+      placeholder="Ex. Trench coat classique"
+      class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
+      [class.border-red-400]="nameControl.invalid && nameControl.touched"
+    />
+    @if (nameControl.invalid && nameControl.touched) {
+      <p class="mt-2 text-xs text-red-600">Le nom est requis.</p>
+    }
+  </div>
+
+  <div>
+    <label
+      for="product-description"
+      class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900"
+    >
+      Description <span class="text-red-500">*</span>
+    </label>
+    <textarea
+      id="product-description"
+      pTextarea
+      formControlName="description"
+      rows="5"
+      placeholder="Description du produit"
+      class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light text-sm"
+      [class.border-red-400]="descriptionControl.invalid && descriptionControl.touched"
+    ></textarea>
+    @if (descriptionControl.invalid && descriptionControl.touched) {
+      <p class="mt-2 text-xs text-red-600">La description est requise.</p>
+    }
+  </div>
+
+  <div>
+    <label for="product-categories" class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">
+      Catégories <span class="text-red-500">*</span>
+    </label>
+    <p-multiselect
+      inputId="product-categories"
+      formControlName="categoryIds"
+      [options]="categories()"
+      optionLabel="name"
+      optionValue="id"
+      placeholder="Sélectionner des catégories"
+      styleClass="w-full"
+      display="chip"
+    />
+    @if (categoryIdsControl.invalid && categoryIdsControl.touched) {
+      <p class="mt-2 text-xs text-red-600">Au moins une catégorie est requise.</p>
+    }
+  </div>
+
+  @if (showIsActive()) {
+    <div class="flex items-center justify-between gap-4 border border-gray-100 bg-amber-50/30 px-4 py-3">
+      <div>
+        <p class="text-sm font-medium text-gray-900">Produit actif</p>
+        <p class="text-xs font-light text-gray-500">Visible dans le catalogue boutique.</p>
+      </div>
+      <p-toggleswitch formControlName="isActive" />
+    </div>
+  }
+</form>

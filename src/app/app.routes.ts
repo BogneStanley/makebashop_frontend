@@ -47,6 +47,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/categories/category-list').then((m) => m.CategoryList),
       },
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./features/products/pages/product-list.page').then((m) => m.ProductListPage),
+      },
+      {
+        path: 'products/new',
+        loadComponent: () =>
+          import('./features/products/pages/product-create.page').then((m) => m.ProductCreatePage),
+      },
+      {
+        path: 'products/:id/edit',
+        loadComponent: () =>
+          import('./features/products/pages/product-edit.page').then((m) => m.ProductEditPage),
+      },
     ],
   },
   {

@@ -28,6 +28,7 @@ export class AdminSidebar {
   navItems: AdminNavItem[] = [
     { label: 'Tableau de bord', icon: 'pi pi-th-large', route: '/manage/dashboard' },
     { label: 'Catégories', icon: 'pi pi-tags', route: '/manage/categories' },
+    { label: 'Produits', icon: 'pi pi-box', route: '/manage/products' },
   ];
 
   onNavClick(): void {

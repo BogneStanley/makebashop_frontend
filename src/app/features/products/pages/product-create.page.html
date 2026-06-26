@@ -1,0 +1,67 @@
+<section>
+  <div class="border-b border-amber-100/50 py-8 md:py-10">
+    <div class="mx-auto max-w-7xl px-4 md:px-6">
+      <p-button
+        label="Retour à la liste"
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        [text]="true"
+        styleClass="mb-3 -ml-2 text-xs uppercase tracking-wider"
+        [disabled]="saving()"
+        (onClick)="cancel()"
+      />
+      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-amber-600">
+        Administration
+      </span>
+      <h1 class="text-3xl font-thin tracking-wide text-gray-900 md:text-4xl">Nouveau produit</h1>
+      <div class="mt-3 h-0.5 w-16 bg-amber-600"></div>
+      <p class="mt-4 max-w-2xl text-sm font-light leading-relaxed text-gray-500">
+        Créez un produit avec ses variantes et images.
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 md:px-6 md:py-12">
+    <app-product-general-form
+      [value]="general()"
+      [categories]="categories"
+      [showIsActive]="false"
+      [disabled]="saving()"
+      (valueChange)="onGeneralChange($event)"
+      (validChange)="generalValid.set($event)"
+    />
+
+    <app-product-variant-table
+      [variants]="variants()"
+      [showValidation]="showValidation()"
+      [disabled]="saving()"
+      (variantsChange)="variants.set($event)"
+      (validChange)="variantsValid.set($event)"
+    />
+
+    <app-product-image-uploader
+      [files]="imageFiles()"
+      [previews]="imagePreviews()"
+      [disabled]="saving()"
+      (filesChange)="onFilesChange($event)"
+      (removeFile)="onRemoveFile($event)"
+    />
+
+    <div class="flex flex-wrap justify-end gap-2 border border-gray-100 bg-white p-4 md:p-5">
+      <p-button
+        label="Annuler"
+        severity="secondary"
+        [text]="true"
+        [disabled]="saving()"
+        (onClick)="cancel()"
+      />
+      <p-button
+        label="Enregistrer"
+        icon="pi pi-check"
+        [loading]="saving()"
+        styleClass="bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
+        (onClick)="save()"
+      />
+    </div>
+  </div>
+</section>

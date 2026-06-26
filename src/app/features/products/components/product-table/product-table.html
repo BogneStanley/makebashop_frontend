@@ -1,0 +1,78 @@
+<div class="border border-gray-100 bg-white">
+  @if (loading()) {
+    <div class="space-y-3 p-4">
+      @for (row of [1, 2, 3]; track row) {
+        <p-skeleton height="3rem" styleClass="rounded-none" />
+      }
+    </div>
+  } @else {
+    <p-table
+      [value]="products()"
+      [tableStyle]="{ 'min-width': '56rem' }"
+      styleClass="product-table"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="w-20">Image</th>
+          <th>Nom</th>
+          <th class="w-28">Statut</th>
+          <th class="w-24 text-center">Variantes</th>
+          <th class="w-28 text-center">Stock</th>
+          <th>Catégories</th>
+          <th class="w-20 text-right">Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-product>
+        <tr>
+          <td>
+            @if (product.primaryImageUrl) {
+              <img
+                [src]="product.primaryImageUrl"
+                [alt]="product.name"
+                class="h-12 w-12 object-cover border border-gray-100"
+              />
+            } @else {
+              <div class="flex h-12 w-12 items-center justify-center border border-gray-100 bg-gray-50">
+                <i class="pi pi-image text-gray-300"></i>
+              </div>
+            }
+          </td>
+          <td class="text-sm font-medium text-gray-900">{{ product.name }}</td>
+          <td>
+            <app-product-status-badge [isActive]="product.isActive" />
+          </td>
+          <td class="text-center text-sm font-light text-gray-600">
+            {{ product.productVariants.length }}
+          </td>
+          <td class="text-center text-sm font-light text-gray-600">
+            {{ product.totalStock }}
+          </td>
+          <td class="text-sm font-light text-gray-600">{{ categoriesLabel(product) }}</td>
+          <td class="text-right">
+            <p-button
+              icon="pi pi-ellipsis-v"
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"
+              size="small"
+              ariaLabel="Actions"
+              (onClick)="openMenu($event, product)"
+            />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7" class="py-12 text-center">
+            <i class="pi pi-box mb-3 block text-3xl text-gray-300"></i>
+            <p class="text-sm font-light text-gray-500">Aucun produit trouvé.</p>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>
+
+<p-menu #actionMenu [model]="menuItems" [popup]="true" appendTo="body" />
