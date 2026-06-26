@@ -1,3 +1,16 @@
 :host ::ng-deep .variant-drawer .p-drawer-footer {
   border-top: 1px solid rgb(243 244 246);
 }
+
+:host ::ng-deep .variant-drawer .p-drawer-content,
+:host ::ng-deep .variant-drawer .p-drawer-footer {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  :host ::ng-deep .variant-drawer .p-drawer-footer > div {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}

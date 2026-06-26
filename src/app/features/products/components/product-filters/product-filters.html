@@ -29,7 +29,7 @@
   [modal]="true"
   appendTo="body"
   [visible]="drawerOpen()"
-  [style]="{ width: '28rem' }"
+  [style]="{ width: 'min(28rem, 100vw)' }"
   styleClass="product-filters-drawer"
   (onHide)="closeDrawer()"
 >
