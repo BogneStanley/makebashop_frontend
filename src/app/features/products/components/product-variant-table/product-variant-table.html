@@ -85,7 +85,9 @@
         <td class="text-sm font-light text-gray-900">{{ formatPrice(variant.price) }}</td>
         <td class="text-sm font-light text-gray-900">{{ variant.stockQuantity }}</td>
         <td class="text-sm font-light text-gray-900">{{ variant.size || '—' }}</td>
-        <td class="text-sm font-light text-gray-900">{{ variant.color || '—' }}</td>
+        <td>
+          <app-variant-color-swatch [color]="variant.color" />
+        </td>
         <td class="text-right">
           <p-button
             icon="pi pi-ellipsis-v"

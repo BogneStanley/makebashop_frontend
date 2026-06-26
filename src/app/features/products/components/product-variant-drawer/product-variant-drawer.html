@@ -50,6 +50,12 @@
                   inputStyleClass="w-full rounded-0 text-sm"
                   [disabled]="disabled()"
                 />
+              } @else if (isColorField(field)) {
+                <app-variant-color-field
+                  [value]="groupValues()[field]"
+                  [disabled]="disabled()"
+                  (valueChange)="updateGroupValue(field, $event)"
+                />
               } @else {
                 <input
                   type="text"
@@ -113,6 +119,12 @@
                           inputStyleClass="w-full rounded-0 text-sm"
                           [disabled]="disabled()"
                         />
+                      } @else if (isColorField(field)) {
+                        <app-variant-color-field
+                          [value]="row[field]"
+                          [disabled]="disabled()"
+                          (valueChange)="updateGroupRow(rowIndex, field, $event)"
+                        />
                       } @else {
                         <input
                           type="text"
@@ -158,6 +170,13 @@
               inputStyleClass="w-full rounded-0 text-sm"
               [class.border-red-400]="showValidation() && (editValues()[field.key] === '' || editValues()[field.key] === null)"
               [disabled]="disabled()"
+            />
+          } @else if (isColorField(field.key)) {
+            <app-variant-color-field
+              [value]="editValues()[field.key]"
+              [disabled]="disabled()"
+              [invalid]="showValidation() && !normalizeHexColor(editValues()[field.key])"
+              (valueChange)="updateEditValue(field.key, $event)"
             />
           } @else {
             <input
@@ -212,6 +231,12 @@
                   styleClass="w-full"
                   inputStyleClass="w-full rounded-0 text-sm"
                   [disabled]="disabled()"
+                />
+              } @else if (isColorField(field)) {
+                <app-variant-color-field
+                  [value]="bulkEditValues()[field]"
+                  [disabled]="disabled()"
+                  (valueChange)="updateBulkValue(field, $event)"
                 />
               } @else {
                 <input

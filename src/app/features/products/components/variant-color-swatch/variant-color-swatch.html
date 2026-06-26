@@ -1,0 +1,12 @@
+@if (hexColor(); as hex) {
+  <div class="flex items-center gap-2">
+    <span
+      class="variant-color-swatch"
+      [style.backgroundColor]="hex"
+      [title]="hex"
+    ></span>
+    <span class="text-xs font-mono text-gray-600">{{ hex }}</span>
+  </div>
+} @else {
+  <span class="text-sm font-light text-gray-400">—</span>
+}

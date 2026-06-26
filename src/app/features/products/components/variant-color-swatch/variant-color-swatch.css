@@ -1,0 +1,7 @@
+.variant-color-swatch {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  border: 1px solid rgb(229 231 235);
+}

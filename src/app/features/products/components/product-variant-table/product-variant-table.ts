@@ -19,6 +19,7 @@ import {
   ProductVariantDrawer,
   VariantDrawerMode,
 } from '../product-variant-drawer/product-variant-drawer';
+import { VariantColorSwatch } from '../variant-color-swatch/variant-color-swatch';
 import {
   isVariantValid,
   VARIANT_FIELDS,
@@ -36,6 +37,7 @@ import {
     MessageModule,
     ProductVariantDrawer,
     ConfirmDialog,
+    VariantColorSwatch,
   ],
   templateUrl: './product-variant-table.html',
   styleUrl: './product-variant-table.css',

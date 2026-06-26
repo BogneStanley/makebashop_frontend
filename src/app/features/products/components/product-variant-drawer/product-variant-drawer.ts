@@ -17,13 +17,16 @@ import { MessageModule } from 'primeng/message';
 import {
   emptyFieldValues,
   emptyVariant,
+  isColorField,
   isNumericField,
   isVariantValid,
   mergeVariant,
+  normalizeHexColor,
   VARIANT_FIELDS,
   VariantField,
   VariantRow,
 } from '../product-variant-table/variant-fields';
+import { VariantColorField } from '../variant-color-field/variant-color-field';
 
 export type VariantDrawerMode = 'create-group' | 'edit-single' | 'edit-bulk';
 
@@ -37,6 +40,7 @@ export type VariantDrawerMode = 'create-group' | 'edit-single' | 'edit-bulk';
     InputTextModule,
     InputNumberModule,
     MessageModule,
+    VariantColorField,
   ],
   templateUrl: './product-variant-drawer.html',
   styleUrl: './product-variant-drawer.css',
@@ -83,6 +87,8 @@ export class ProductVariantDrawer {
   });
 
   isNumericField = isNumericField;
+  isColorField = isColorField;
+  normalizeHexColor = normalizeHexColor;
 
   constructor() {
     effect(() => {
@@ -198,6 +204,9 @@ export class ProductVariantDrawer {
       if (isNumericField(field)) {
         return value === null || value === undefined || Number(value) < 0;
       }
+      if (isColorField(field)) {
+        return !normalizeHexColor(value);
+      }
       return !String(value).trim();
     });
 
@@ -237,7 +246,7 @@ export class ProductVariantDrawer {
       price: Number(values.price) || 0,
       stockQuantity: Number(values.stockQuantity) || 0,
       size: String(values.size).trim(),
-      color: String(values.color).trim(),
+      color: normalizeHexColor(values.color) ?? '',
     };
 
     if (!isVariantValid(variant)) {
@@ -258,6 +267,8 @@ export class ProductVariantDrawer {
       const value = this.bulkEditValues()[field];
       if (field === 'price' || field === 'stockQuantity') {
         patch[field] = Number(value) || 0;
+      } else if (isColorField(field)) {
+        patch[field] = normalizeHexColor(value) ?? '';
       } else {
         patch[field] = String(value).trim();
       }
@@ -266,6 +277,9 @@ export class ProductVariantDrawer {
     const hasEmptyText = this.bulkEditFields().some((field) => {
       if (isNumericField(field)) {
         return (patch[field] as number) < 0;
+      }
+      if (isColorField(field)) {
+        return !normalizeHexColor(patch[field]);
       }
       return !String(patch[field]).trim();
     });
