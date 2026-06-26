@@ -46,6 +46,7 @@ export class ProductEditPage implements OnInit {
 
   categories = mockCategories;
   generalForm = viewChild(ProductGeneralForm);
+  variantTable = viewChild(ProductVariantTable);
 
   product = signal<ProductResponse | null>(null);
   activeTab = signal<'general' | 'variants' | 'images'>('general');
@@ -63,11 +64,11 @@ export class ProductEditPage implements OnInit {
   variants = signal<
     { id?: number; sku: string; price: number; stockQuantity: number; size: string; color: string }[]
   >([]);
-  
+
   images = signal<(ProductImageResponse & { file?: File })[]>([]);
 
-  generalValid = signal(true);
-  showValidation = signal(false);
+  showGeneralValidation = signal(false);
+  showVariantsValidation = signal(false);
 
   confirmVisible = signal(false);
   confirmData = signal<ConfirmDialogData | null>(null);
@@ -165,8 +166,21 @@ export class ProductEditPage implements OnInit {
     this.images.update((items) => items.filter((image) => !imageIds.includes(image.id)));
   }
 
-  onSaveVariant(variant: unknown): void {
-    console.log('save variant (mock)', variant);
+  saveVariants(): void {
+    this.showVariantsValidation.set(true);
+    if (!this.variantTable()?.validate()) {
+      this.notifications.error('Veuillez corriger les erreurs des variantes.');
+      return;
+    }
+
+    this.saving.set(true);
+    console.log('variants (mock)', this.variants());
+
+    setTimeout(() => {
+      this.saving.set(false);
+      this.showVariantsValidation.set(false);
+      this.notifications.success('Variantes enregistrées (mock).');
+    }, 400);
   }
 
   activate(): void {
@@ -191,9 +205,8 @@ export class ProductEditPage implements OnInit {
   }
 
   saveGeneral(): void {
-    this.showValidation.set(true);
-    this.generalForm()?.markAllAsTouched();
-    if (!this.generalValid()) {
+    this.showGeneralValidation.set(true);
+    if (!this.generalForm()?.validate()) {
       this.notifications.error('Veuillez corriger les erreurs du formulaire.');
       return;
     }
@@ -215,6 +228,7 @@ export class ProductEditPage implements OnInit {
           : current,
       );
       this.saving.set(false);
+      this.showGeneralValidation.set(false);
       this.notifications.success('Produit enregistré (mock).');
     }, 400);
   }

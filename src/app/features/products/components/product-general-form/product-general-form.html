@@ -12,9 +12,9 @@
       formControlName="name"
       placeholder="Ex. Trench coat classique"
       class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
-      [class.border-red-400]="nameControl.invalid && nameControl.touched"
+      [class.border-red-400]="showValidation() && nameControl.invalid"
     />
-    @if (nameControl.invalid && nameControl.touched) {
+    @if (showValidation() && nameControl.invalid) {
       <p class="mt-2 text-xs text-red-600">Le nom est requis.</p>
     }
   </div>
@@ -33,9 +33,9 @@
       rows="5"
       placeholder="Description du produit"
       class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light text-sm"
-      [class.border-red-400]="descriptionControl.invalid && descriptionControl.touched"
+      [class.border-red-400]="showValidation() && descriptionControl.invalid"
     ></textarea>
-    @if (descriptionControl.invalid && descriptionControl.touched) {
+    @if (showValidation() && descriptionControl.invalid) {
       <p class="mt-2 text-xs text-red-600">La description est requise.</p>
     }
   </div>
@@ -53,8 +53,9 @@
       placeholder="Sélectionner des catégories"
       styleClass="w-full"
       display="chip"
+      [class.border-red-400]="showValidation() && categoryIdsControl.invalid"
     />
-    @if (categoryIdsControl.invalid && categoryIdsControl.touched) {
+    @if (showValidation() && categoryIdsControl.invalid) {
       <p class="mt-2 text-xs text-red-600">Au moins une catégorie est requise.</p>
     }
   </div>

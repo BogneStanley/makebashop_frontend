@@ -14,6 +14,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { ProductGeneralForm } from '../components/product-general-form/product-general-form';
 import { ProductImageUploader } from '../components/product-image-uploader/product-image-uploader';
 import { ProductVariantTable } from '../components/product-variant-table/product-variant-table';
+import { VariantRow } from '../components/product-variant-table/variant-fields';
 
 @Component({
   selector: 'app-product-create-page',
@@ -28,14 +29,13 @@ export class ProductCreatePage implements OnDestroy {
 
   categories = mockCategories;
   generalForm = viewChild(ProductGeneralForm);
+  variantTable = viewChild(ProductVariantTable);
 
   general = signal({ name: '', description: '', categoryIds: [] as number[] });
-  variants = signal([{ sku: '', price: 0, stockQuantity: 0, size: '', color: '' }]);
+  variants = signal<VariantRow[]>([]);
   imageFiles = signal<File[]>([]);
   imagePreviews = signal<string[]>([]);
 
-  generalValid = signal(false);
-  variantsValid = signal(false);
   showValidation = signal(false);
   saving = signal(false);
 
@@ -78,9 +78,11 @@ export class ProductCreatePage implements OnDestroy {
 
   save(): void {
     this.showValidation.set(true);
-    this.generalForm()?.markAllAsTouched();
 
-    if (!this.generalValid() || !this.variantsValid()) {
+    const generalValid = this.generalForm()?.validate() ?? false;
+    const variantsValid = this.variantTable()?.validate() ?? false;
+
+    if (!generalValid || !variantsValid) {
       this.notifications.error('Veuillez corriger les erreurs du formulaire.');
       return;
     }

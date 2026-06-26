@@ -26,9 +26,9 @@
       [value]="general()"
       [categories]="categories"
       [showIsActive]="false"
+      [showValidation]="showValidation()"
       [disabled]="saving()"
       (valueChange)="onGeneralChange($event)"
-      (validChange)="generalValid.set($event)"
     />
 
     <app-product-variant-table
@@ -36,7 +36,6 @@
       [showValidation]="showValidation()"
       [disabled]="saving()"
       (variantsChange)="variants.set($event)"
-      (validChange)="variantsValid.set($event)"
     />
 
     <app-product-image-uploader

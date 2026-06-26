@@ -2,18 +2,33 @@
   <div class="flex flex-col gap-3 border-b border-gray-100 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
     <div>
       <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-900">Variantes</h2>
-      <p class="mt-1 text-xs font-light text-gray-500">Au moins une variante est requise.</p>
+      <p class="mt-1 text-xs font-light text-gray-500">
+        Ajoutez des groupes de variantes et modifiez-les via le panneau latéral.
+      </p>
     </div>
-    <p-button
-      label="Ajouter une variante"
-      icon="pi pi-plus"
-      styleClass="bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
-      [disabled]="disabled()"
-      (onClick)="onAddRow()"
-    />
+    <div class="flex flex-wrap gap-2">
+      @if (selectionCount() > 0) {
+        <p-button
+          [label]="'Modifier la sélection (' + selectionCount() + ')'"
+          icon="pi pi-pencil"
+          severity="secondary"
+          [outlined]="true"
+          styleClass="rounded-0 text-xs uppercase tracking-wider font-semibold"
+          [disabled]="disabled()"
+          (onClick)="openBulkEdit()"
+        />
+      }
+      <p-button
+        label="Ajouter un groupe"
+        icon="pi pi-plus"
+        styleClass="bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
+        [disabled]="disabled()"
+        (onClick)="openCreateGroup()"
+      />
+    </div>
   </div>
 
-  @if (!canRemove()) {
+  @if (!canRemove() && variants().length > 0) {
     <div class="px-4 pt-4 md:px-6">
       <p-message
         severity="warn"
@@ -30,116 +45,61 @@
   >
     <ng-template #header>
       <tr>
+        <th class="w-12">
+          <p-checkbox
+            [binary]="true"
+            [ngModel]="allSelected()"
+            (ngModelChange)="toggleAll($event)"
+            [disabled]="disabled() || variants().length === 0"
+          />
+        </th>
         <th>SKU</th>
         <th>Prix (FCFA)</th>
         <th>Stock</th>
         <th>Taille</th>
         <th>Couleur</th>
-        <th class="w-28 text-right">Actions</th>
+        <th class="w-16 text-right">Actions</th>
       </tr>
     </ng-template>
 
     <ng-template #body let-variant let-rowIndex="rowIndex">
       <tr [class.bg-red-50]="variantInvalid(variant)">
         <td>
-          <input
-            type="text"
-            pInputText
-            [ngModel]="variant.sku"
-            (ngModelChange)="updateVariant(rowIndex, { sku: $event })"
-            placeholder="SKU"
-            class="w-full min-w-28 border-gray-200 rounded-0 font-light text-sm"
+          <p-checkbox
+            [binary]="true"
+            [ngModel]="isRowSelected(rowIndex)"
+            (ngModelChange)="toggleRow(rowIndex, $event)"
             [disabled]="disabled()"
           />
         </td>
-        <td>
-          <p-inputnumber
-            [ngModel]="variant.price"
-            (ngModelChange)="updateVariant(rowIndex, { price: $event ?? 0 })"
-            [min]="0"
-            mode="decimal"
-            [minFractionDigits]="0"
-            styleClass="w-full"
-            inputStyleClass="w-full border-gray-200 rounded-0 font-light text-sm"
-            [disabled]="disabled()"
-          />
-        </td>
-        <td>
-          <p-inputnumber
-            [ngModel]="variant.stockQuantity"
-            (ngModelChange)="updateVariant(rowIndex, { stockQuantity: $event ?? 0 })"
-            [min]="0"
-            styleClass="w-full"
-            inputStyleClass="w-full border-gray-200 rounded-0 font-light text-sm"
-            [disabled]="disabled()"
-          />
-        </td>
-        <td>
-          <input
-            type="text"
-            pInputText
-            [ngModel]="variant.size"
-            (ngModelChange)="updateVariant(rowIndex, { size: $event })"
-            placeholder="Taille"
-            class="w-full min-w-20 border-gray-200 rounded-0 font-light text-sm"
-            [disabled]="disabled()"
-          />
-        </td>
-        <td>
-          <input
-            type="text"
-            pInputText
-            [ngModel]="variant.color"
-            (ngModelChange)="updateVariant(rowIndex, { color: $event })"
-            placeholder="Couleur"
-            class="w-full min-w-24 border-gray-200 rounded-0 font-light text-sm"
-            [disabled]="disabled()"
-          />
-        </td>
+        <td class="text-sm font-light text-gray-900">{{ variant.sku || '—' }}</td>
+        <td class="text-sm font-light text-gray-900">{{ formatPrice(variant.price) }}</td>
+        <td class="text-sm font-light text-gray-900">{{ variant.stockQuantity }}</td>
+        <td class="text-sm font-light text-gray-900">{{ variant.size || '—' }}</td>
+        <td class="text-sm font-light text-gray-900">{{ variant.color || '—' }}</td>
         <td class="text-right">
-          <div class="flex justify-end gap-1">
-            @if (editMode() && variant.id) {
-              <p-button
-                icon="pi pi-save"
-                [rounded]="true"
-                [text]="true"
-                severity="secondary"
-                size="small"
-                ariaLabel="Enregistrer la variante"
-                [disabled]="disabled() || !variant.id"
-                (onClick)="onSaveVariant(variant)"
-              />
-              <p-button
-                icon="pi pi-trash"
-                [rounded]="true"
-                [text]="true"
-                severity="danger"
-                size="small"
-                ariaLabel="Supprimer la variante"
-                [disabled]="disabled() || !canRemove()"
-                (onClick)="deleteVariants.emit([variant.id!])"
-              />
-            } @else {
-              <p-button
-                icon="pi pi-trash"
-                [rounded]="true"
-                [text]="true"
-                severity="danger"
-                size="small"
-                ariaLabel="Supprimer la ligne"
-                [disabled]="disabled() || !canRemove()"
-                (onClick)="onRemoveRow(rowIndex)"
-              />
-            }
-          </div>
+          <p-button
+            icon="pi pi-ellipsis-v"
+            [rounded]="true"
+            [text]="true"
+            severity="secondary"
+            size="small"
+            ariaLabel="Actions"
+            [disabled]="disabled()"
+            (onClick)="openRowMenu($event, rowIndex)"
+          />
         </td>
       </tr>
     </ng-template>
 
     <ng-template #emptymessage>
       <tr>
-        <td colspan="6" class="py-8 text-center text-sm font-light text-gray-500">
-          Aucune variante. Ajoutez au moins une ligne.
+        <td colspan="7" class="py-12 text-center">
+          <i class="pi pi-box mb-3 block text-3xl text-gray-300"></i>
+          <p class="text-sm font-light text-gray-500">Aucune variante.</p>
+          <p class="mt-1 text-xs font-light text-gray-400">
+            Cliquez sur « Ajouter un groupe » pour commencer.
+          </p>
         </td>
       </tr>
     </ng-template>
@@ -147,7 +107,21 @@
 
   @if (showValidation() && !isValid()) {
     <p class="px-4 py-3 text-xs text-red-600 md:px-6">
-      Vérifiez que chaque variante a un SKU, une taille, une couleur et des valeurs numériques valides.
+      Ajoutez au moins une variante valide (SKU, taille, couleur, prix et stock).
     </p>
   }
 </div>
+
+<p-menu #actionMenu [model]="menuItems" [popup]="true" appendTo="body" />
+
+<app-product-variant-drawer
+  [visible]="drawerVisible()"
+  [mode]="drawerMode()"
+  [variant]="editingVariant()"
+  [bulkIndices]="bulkIndices()"
+  [disabled]="disabled()"
+  (visibleChange)="drawerVisible.set($event)"
+  (createGroup)="onCreateGroup($event)"
+  (saveVariant)="onSaveVariant($event)"
+  (bulkUpdate)="onBulkUpdate($event)"
+/>

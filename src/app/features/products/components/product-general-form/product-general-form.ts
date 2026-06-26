@@ -37,6 +37,7 @@ export class ProductGeneralForm {
   }>();
   categories = input.required<CategoryResponse[]>();
   showIsActive = input(false);
+  showValidation = input(false);
   disabled = input(false);
 
   valueChange = output<{
@@ -45,7 +46,6 @@ export class ProductGeneralForm {
     isActive: boolean;
     categoryIds: number[];
   }>();
-  validChange = output<boolean>();
 
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.pattern(/\S+/)]],
@@ -74,8 +74,9 @@ export class ProductGeneralForm {
       }
     });
 
-    this.form.valueChanges.subscribe(() => this.emitState());
-    this.form.statusChanges.subscribe(() => this.emitState());
+    this.form.valueChanges.subscribe(() => {
+      this.valueChange.emit(this.form.getRawValue());
+    });
   }
 
   get nameControl() {
@@ -90,14 +91,7 @@ export class ProductGeneralForm {
     return this.form.controls.categoryIds;
   }
 
-  markAllAsTouched(): void {
-    this.form.markAllAsTouched();
-    this.emitState();
-  }
-
-  private emitState(): void {
-    const raw = this.form.getRawValue();
-    this.valueChange.emit(raw);
-    this.validChange.emit(this.form.valid);
+  validate(): boolean {
+    return this.form.valid;
   }
 }

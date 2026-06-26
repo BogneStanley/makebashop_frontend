@@ -38,9 +38,9 @@
                 [value]="general()"
                 [categories]="categories"
                 [showIsActive]="true"
+                [showValidation]="showGeneralValidation()"
                 [disabled]="saving()"
                 (valueChange)="general.set($event)"
-                (validChange)="generalValid.set($event)"
               />
               <div class="flex justify-end border border-gray-100 bg-white p-4 md:p-5">
                 <p-button
@@ -55,16 +55,24 @@
           </p-tabpanel>
 
           <p-tabpanel value="variants">
-            <div class="pt-6">
+            <div class="space-y-6 pt-6">
               <app-product-variant-table
                 [variants]="variants()"
                 [editMode]="true"
-                [showValidation]="showValidation()"
+                [showValidation]="showVariantsValidation()"
                 [disabled]="saving()"
                 (variantsChange)="variants.set($event)"
-                (saveVariant)="onSaveVariant($event)"
                 (deleteVariants)="onDeleteVariants($event)"
               />
+              <div class="flex justify-end border border-gray-100 bg-white p-4 md:p-5">
+                <p-button
+                  label="Enregistrer"
+                  icon="pi pi-check"
+                  [loading]="saving()"
+                  styleClass="bg-amber-600 border-amber-600 hover:bg-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
+                  (onClick)="saveVariants()"
+                />
+              </div>
             </div>
           </p-tabpanel>
 

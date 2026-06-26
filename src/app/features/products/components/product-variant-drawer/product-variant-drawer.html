@@ -1,0 +1,245 @@
+<p-drawer
+  [header]="drawerTitle()"
+  position="right"
+  [modal]="true"
+  appendTo="body"
+  [visible]="visible()"
+  [style]="{ width: '32rem' }"
+  styleClass="variant-drawer"
+  (onHide)="close()"
+>
+  @if (mode() === 'create-group') {
+    <div class="space-y-6">
+      <section>
+        <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-900">
+          Propriétés communes au groupe
+        </p>
+        <p class="mb-3 text-xs font-light text-gray-500">
+          Cochez les propriétés partagées par toutes les variantes du groupe (ex. couleur, prix).
+        </p>
+        <div class="flex flex-wrap gap-3">
+          @for (field of fields; track field.key) {
+            <label class="flex cursor-pointer items-center gap-2 border border-gray-100 px-3 py-2 text-sm">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="isGroupField(field.key)"
+                (ngModelChange)="toggleGroupField(field.key, $event)"
+                [disabled]="disabled()"
+              />
+              {{ field.label }}
+            </label>
+          }
+        </div>
+        @if (showValidation() && groupFields().length === 0) {
+          <p class="mt-2 text-xs text-red-600">Sélectionnez au moins une propriété commune.</p>
+        }
+      </section>
+
+      @if (groupFields().length > 0) {
+        <section class="space-y-3 border border-amber-100 bg-amber-50/30 p-4">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-900">Valeurs communes</p>
+          @for (field of groupFields(); track field) {
+            <div>
+              <label class="mb-1 block text-xs font-medium text-gray-700">{{ fieldLabel(field) }}</label>
+              @if (isNumericField(field)) {
+                <p-inputnumber
+                  [ngModel]="groupValues()[field]"
+                  (ngModelChange)="updateGroupValue(field, $event ?? 0)"
+                  [min]="0"
+                  styleClass="w-full"
+                  inputStyleClass="w-full rounded-0 text-sm"
+                  [disabled]="disabled()"
+                />
+              } @else {
+                <input
+                  type="text"
+                  pInputText
+                  [ngModel]="groupValues()[field]"
+                  (ngModelChange)="updateGroupValue(field, $event)"
+                  class="w-full rounded-0 text-sm"
+                  [disabled]="disabled()"
+                />
+              }
+            </div>
+          }
+        </section>
+
+        <section>
+          <div class="mb-3 flex items-center justify-between gap-2">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-900">
+              Lignes du groupe
+            </p>
+            <p-button
+              label="Ajouter une ligne"
+              icon="pi pi-plus"
+              size="small"
+              [text]="true"
+              [disabled]="disabled()"
+              (onClick)="addGroupRow()"
+            />
+          </div>
+          <p class="mb-3 text-xs font-light text-gray-500">
+            Saisissez les propriétés individuelles pour chaque variante.
+          </p>
+
+          <div class="space-y-3">
+            @for (row of groupRows(); track $index; let rowIndex = $index) {
+              <div class="border border-gray-100 p-3">
+                <div class="mb-2 flex items-center justify-between">
+                  <span class="text-xs font-medium text-gray-500">Variante {{ rowIndex + 1 }}</span>
+                  @if (groupRows().length > 1) {
+                    <p-button
+                      icon="pi pi-trash"
+                      size="small"
+                      [text]="true"
+                      severity="danger"
+                      [disabled]="disabled()"
+                      (onClick)="removeGroupRow(rowIndex)"
+                    />
+                  }
+                </div>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  @for (field of individualFields(); track field) {
+                    <div>
+                      <label class="mb-1 block text-xs font-medium text-gray-700">
+                        {{ fieldLabel(field) }}
+                      </label>
+                      @if (isNumericField(field)) {
+                        <p-inputnumber
+                          [ngModel]="row[field]"
+                          (ngModelChange)="updateGroupRow(rowIndex, field, $event ?? 0)"
+                          [min]="0"
+                          styleClass="w-full"
+                          inputStyleClass="w-full rounded-0 text-sm"
+                          [disabled]="disabled()"
+                        />
+                      } @else {
+                        <input
+                          type="text"
+                          pInputText
+                          [ngModel]="row[field]"
+                          (ngModelChange)="updateGroupRow(rowIndex, field, $event)"
+                          class="w-full rounded-0 text-sm"
+                          [disabled]="disabled()"
+                        />
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (showValidation() && individualFields().length === 0) {
+            <p-message
+              severity="info"
+              styleClass="mt-3 w-full"
+              text="Toutes les propriétés sont communes : une seule variante sera créée."
+            />
+          }
+        </section>
+      }
+    </div>
+  }
+
+  @if (mode() === 'edit-single') {
+    <div class="space-y-4">
+      @for (field of fields; track field.key) {
+        <div>
+          <label class="mb-1 block text-xs font-semibold uppercase tracking-wider text-gray-900">
+            {{ field.label }}
+          </label>
+          @if (isNumericField(field.key)) {
+            <p-inputnumber
+              [ngModel]="editValues()[field.key]"
+              (ngModelChange)="updateEditValue(field.key, $event ?? 0)"
+              [min]="0"
+              styleClass="w-full"
+              inputStyleClass="w-full rounded-0 text-sm"
+              [class.border-red-400]="showValidation() && (editValues()[field.key] === '' || editValues()[field.key] === null)"
+              [disabled]="disabled()"
+            />
+          } @else {
+            <input
+              type="text"
+              pInputText
+              [ngModel]="editValues()[field.key]"
+              (ngModelChange)="updateEditValue(field.key, $event)"
+              class="w-full rounded-0 text-sm"
+              [class.border-red-400]="showValidation() && !editValues()[field.key]"
+              [disabled]="disabled()"
+            />
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (mode() === 'edit-bulk') {
+    <div class="space-y-6">
+      <section>
+        <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-900">
+          Propriétés à modifier
+        </p>
+        <div class="flex flex-wrap gap-3">
+          @for (field of fields; track field.key) {
+            <label class="flex cursor-pointer items-center gap-2 border border-gray-100 px-3 py-2 text-sm">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="isBulkField(field.key)"
+                (ngModelChange)="toggleBulkField(field.key, $event)"
+                [disabled]="disabled()"
+              />
+              {{ field.label }}
+            </label>
+          }
+        </div>
+        @if (showValidation() && bulkEditFields().length === 0) {
+          <p class="mt-2 text-xs text-red-600">Sélectionnez au moins une propriété à modifier.</p>
+        }
+      </section>
+
+      @if (bulkEditFields().length > 0) {
+        <section class="space-y-3 border border-gray-100 p-4">
+          @for (field of bulkEditFields(); track field) {
+            <div>
+              <label class="mb-1 block text-xs font-medium text-gray-700">{{ fieldLabel(field) }}</label>
+              @if (isNumericField(field)) {
+                <p-inputnumber
+                  [ngModel]="bulkEditValues()[field]"
+                  (ngModelChange)="updateBulkValue(field, $event ?? 0)"
+                  [min]="0"
+                  styleClass="w-full"
+                  inputStyleClass="w-full rounded-0 text-sm"
+                  [disabled]="disabled()"
+                />
+              } @else {
+                <input
+                  type="text"
+                  pInputText
+                  [ngModel]="bulkEditValues()[field]"
+                  (ngModelChange)="updateBulkValue(field, $event)"
+                  class="w-full rounded-0 text-sm"
+                  [disabled]="disabled()"
+                />
+              }
+            </div>
+          }
+        </section>
+      }
+    </div>
+  }
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-2">
+      <p-button label="Annuler" severity="secondary" [text]="true" type="button" (onClick)="close()" />
+      <p-button
+        [label]="mode() === 'create-group' ? 'Ajouter le groupe' : 'Enregistrer'"
+        icon="pi pi-check"
+        styleClass="bg-amber-600 border-amber-600 hover:bg-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
+        [disabled]="disabled()"
+        (onClick)="submit()"
+      />
+    </div>
+  </ng-template>
+</p-drawer>

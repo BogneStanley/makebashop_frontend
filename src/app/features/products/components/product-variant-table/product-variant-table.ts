@@ -1,27 +1,28 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
+import { CheckboxModule } from 'primeng/checkbox';
+import { Menu, MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
-import { ProductVariantRequest } from '../../../../core/models/products/product-request.models';
-
-type VariantRow = ProductVariantRequest & { id?: number };
-
-function isVariantValid(variant: VariantRow): boolean {
-  return !!(
-    variant.sku.trim() &&
-    variant.size.trim() &&
-    variant.color.trim() &&
-    variant.price >= 0 &&
-    variant.stockQuantity >= 0
-  );
-}
-
-function createEmptyVariant(): VariantRow {
-  return { sku: '', price: 0, stockQuantity: 0, size: '', color: '' };
-}
+import { MenuItem } from 'primeng/api';
+import {
+  ProductVariantDrawer,
+  VariantDrawerMode,
+} from '../product-variant-drawer/product-variant-drawer';
+import {
+  isVariantValid,
+  VARIANT_FIELDS,
+  VariantRow,
+} from './variant-fields';
 
 @Component({
   selector: 'app-product-variant-table',
@@ -29,9 +30,10 @@ function createEmptyVariant(): VariantRow {
     FormsModule,
     TableModule,
     ButtonModule,
-    InputTextModule,
-    InputNumberModule,
+    CheckboxModule,
+    MenuModule,
     MessageModule,
+    ProductVariantDrawer,
   ],
   templateUrl: './product-variant-table.html',
   styleUrl: './product-variant-table.css',
@@ -44,46 +46,161 @@ export class ProductVariantTable {
   showValidation = input(false);
 
   variantsChange = output<VariantRow[]>();
-  validChange = output<boolean>();
-  saveVariant = output<VariantRow>();
   deleteVariants = output<number[]>();
 
+  drawer = viewChild(ProductVariantDrawer);
+  actionMenu = viewChild.required<Menu>('actionMenu');
+
+  drawerVisible = signal(false);
+  drawerMode = signal<VariantDrawerMode>('create-group');
+  editingIndex = signal<number | null>(null);
+  editingVariant = signal<VariantRow | null>(null);
+  bulkIndices = signal<number[]>([]);
+
+  selectedIndices = signal<Set<number>>(new Set());
+  menuItems: MenuItem[] = [];
+
   canRemove = computed(() => this.variants().length > 1);
+  allSelected = computed(
+    () =>
+      this.variants().length > 0 && this.selectedIndices().size === this.variants().length,
+  );
+  selectionCount = computed(() => this.selectedIndices().size);
   isValid = computed(
     () => this.variants().length >= 1 && this.variants().every(isVariantValid),
   );
 
-  onAddRow(): void {
-    this.variantsChange.emit([...this.variants(), createEmptyVariant()]);
-    this.emitValid();
+  openCreateGroup(): void {
+    this.editingIndex.set(null);
+    this.editingVariant.set(null);
+    this.bulkIndices.set([]);
+    this.drawerMode.set('create-group');
+    this.drawerVisible.set(true);
   }
 
-  onRemoveRow(index: number): void {
-    if (!this.canRemove()) {
+  openBulkEdit(): void {
+    if (this.selectionCount() === 0) {
       return;
     }
-    this.variantsChange.emit(this.variants().filter((_, i) => i !== index));
-    this.emitValid();
+    this.editingIndex.set(null);
+    this.editingVariant.set(null);
+    this.bulkIndices.set([...this.selectedIndices()]);
+    this.drawerMode.set('edit-bulk');
+    this.drawerVisible.set(true);
   }
 
-  updateVariant(index: number, patch: Partial<VariantRow>): void {
-    this.variantsChange.emit(
-      this.variants().map((variant, i) => (i === index ? { ...variant, ...patch } : variant)),
-    );
-    this.emitValid();
+  openEditVariant(index: number): void {
+    this.editingIndex.set(index);
+    this.editingVariant.set(this.variants()[index]);
+    this.bulkIndices.set([]);
+    this.drawerMode.set('edit-single');
+    this.drawerVisible.set(true);
+  }
+
+  openRowMenu(event: Event, index: number): void {
+    const variant = this.variants()[index];
+    this.menuItems = [
+      {
+        label: 'Modifier',
+        icon: 'pi pi-pencil',
+        command: () => this.openEditVariant(index),
+      },
+      {
+        label: 'Supprimer',
+        icon: 'pi pi-trash',
+        command: () => this.removeVariant(index, variant),
+      },
+    ];
+    this.actionMenu().toggle(event);
+  }
+
+  onCreateGroup(newVariants: VariantRow[]): void {
+    this.variantsChange.emit([...this.variants(), ...newVariants]);
+    this.drawerVisible.set(false);
   }
 
   onSaveVariant(variant: VariantRow): void {
-    if (isVariantValid(variant)) {
-      this.saveVariant.emit(variant);
+    const index = this.editingIndex();
+    if (index === null) {
+      return;
     }
+    this.variantsChange.emit(
+      this.variants().map((current, i) =>
+        i === index ? { ...variant, id: current.id } : current,
+      ),
+    );
+    this.drawerVisible.set(false);
+  }
+
+  onBulkUpdate(event: { indices: number[]; patch: Partial<VariantRow> }): void {
+    this.variantsChange.emit(
+      this.variants().map((variant, index) =>
+        event.indices.includes(index) ? { ...variant, ...event.patch } : variant,
+      ),
+    );
+    this.drawerVisible.set(false);
+    this.selectedIndices.set(new Set());
+  }
+
+  removeVariant(index: number, variant: VariantRow): void {
+    if (!this.canRemove()) {
+      return;
+    }
+    if (this.editMode() && variant.id) {
+      this.deleteVariants.emit([variant.id]);
+    } else {
+      this.variantsChange.emit(this.variants().filter((_, i) => i !== index));
+    }
+    this.rebuildSelectionAfterRemove(index);
+  }
+
+  toggleRow(index: number, selected: boolean): void {
+    const next = new Set(this.selectedIndices());
+    if (selected) {
+      next.add(index);
+    } else {
+      next.delete(index);
+    }
+    this.selectedIndices.set(next);
+  }
+
+  toggleAll(selected: boolean): void {
+    if (selected) {
+      this.selectedIndices.set(new Set(this.variants().map((_, index) => index)));
+    } else {
+      this.selectedIndices.set(new Set());
+    }
+  }
+
+  isRowSelected(index: number): boolean {
+    return this.selectedIndices().has(index);
   }
 
   variantInvalid(variant: VariantRow): boolean {
     return this.showValidation() && !isVariantValid(variant);
   }
 
-  private emitValid(): void {
-    this.validChange.emit(this.isValid());
+  validate(): boolean {
+    return this.isValid();
+  }
+
+  fieldLabel(key: keyof VariantRow): string {
+    return VARIANT_FIELDS.find((f) => f.key === key)?.label ?? String(key);
+  }
+
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('fr-FR').format(price);
+  }
+
+  private rebuildSelectionAfterRemove(removedIndex: number): void {
+    const next = new Set<number>();
+    for (const index of this.selectedIndices()) {
+      if (index < removedIndex) {
+        next.add(index);
+      } else if (index > removedIndex) {
+        next.add(index - 1);
+      }
+    }
+    this.selectedIndices.set(next);
   }
 }

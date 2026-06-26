@@ -12,7 +12,6 @@ export interface ProductStatusBadgeInputs {
     <p-tag
       [value]="isActive() ? 'Actif' : 'Inactif'"
       [severity]="isActive() ? 'success' : 'secondary'"
-      class="text-[10px] uppercase tracking-wider font-semibold"
     />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

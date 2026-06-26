@@ -31,11 +31,69 @@ const MyPreset = definePreset(Aura, {
       root: {
         borderRadius: '{border.radius.none}',
         roundedBorderRadius: '{border.radius.none}',
+        paddingX: '0.625rem',
+        paddingY: '0.375rem',
+        gap: '0.375rem',
+        iconOnlyWidth: '2rem',
+        sm: {
+          fontSize: '0.6875rem',
+          paddingX: '0.5rem',
+          paddingY: '0.25rem',
+          iconOnlyWidth: '1.75rem',
+        },
+        lg: {
+          fontSize: '0.8125rem',
+          paddingX: '0.875rem',
+          paddingY: '0.5rem',
+          iconOnlyWidth: '2.375rem',
+        },
+        label: {
+          fontWeight: '600',
+        },
       },
+      css: `
+        .p-button {
+          font-size: 0.75rem;
+          line-height: 1.25rem;
+        }
+      `,
     },
     inputnumber: {
       button: {
         borderRadius: '{border.radius.none}',
+      },
+    },
+    tag: {
+      root: {
+        fontSize: '0.6875rem',
+        fontWeight: '600',
+        padding: '0.1875rem 0.4375rem',
+        gap: '0.25rem',
+        borderRadius: '{border.radius.none}',
+        roundedBorderRadius: '{border.radius.none}',
+      },
+      icon: {
+        size: '0.6875rem',
+      },
+    },
+    badge: {
+      root: {
+        fontSize: '0.6875rem',
+        fontWeight: '600',
+        padding: '0 0.375rem',
+        minWidth: '1.25rem',
+        height: '1.25rem',
+        borderRadius: '{border.radius.none}',
+      },
+      sm: {
+        fontSize: '0.625rem',
+        minWidth: '1.125rem',
+        height: '1.125rem',
+      },
+      lg: {
+        fontSize: '0.75rem',
+        minWidth: '1.375rem',
+        height: '1.375rem',
       },
     },
   },
