@@ -29,6 +29,7 @@ export class AdminSidebar {
     { label: 'Tableau de bord', icon: 'pi pi-th-large', route: '/manage/dashboard' },
     { label: 'Catégories', icon: 'pi pi-tags', route: '/manage/categories' },
     { label: 'Produits', icon: 'pi pi-box', route: '/manage/products' },
+    { label: 'Commandes', icon: 'pi pi-shopping-bag', route: '/manage/orders' },
   ];
 
   onNavClick(): void {

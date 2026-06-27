@@ -1,0 +1,8 @@
+:host ::ng-deep .p-iconfield,
+:host ::ng-deep .p-select {
+  width: 100%;
+}
+
+:host ::ng-deep .order-filters-drawer .p-drawer-footer {
+  border-top: 1px solid rgb(243 244 246);
+}

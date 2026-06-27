@@ -1,0 +1,176 @@
+@if (loading()) {
+  <section class="mx-auto max-w-7xl px-4 py-16 md:px-6">
+    <p class="text-center text-sm font-light text-gray-500">Chargement…</p>
+  </section>
+} @else if (notFound()) {
+  <section class="mx-auto max-w-7xl px-4 py-16 text-center md:px-6">
+    <i class="pi pi-exclamation-triangle mb-4 block text-4xl text-gray-300"></i>
+    <p class="text-sm font-light text-gray-500">Commande introuvable.</p>
+    <p-button
+      label="Retour à la liste"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [text]="true"
+      styleClass="mt-4 text-xs uppercase tracking-wider"
+      (onClick)="goBack()"
+    />
+  </section>
+} @else if (order(); as order) {
+  <section>
+    <div class="border-b border-amber-100/50 py-8 md:py-10">
+      <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 md:flex-row md:items-end md:justify-between md:px-6">
+        <div>
+          <p-button
+            label="Retour à la liste"
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            [text]="true"
+            styleClass="mb-3 -ml-2 text-xs uppercase tracking-wider"
+            (onClick)="goBack()"
+          />
+          <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-amber-600">
+            Administration
+          </span>
+          <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-3xl font-thin tracking-wide text-gray-900 md:text-4xl">
+              {{ order.orderNumber }}
+            </h1>
+            <app-order-status-badge [status]="order.status" />
+          </div>
+          <div class="mt-3 h-0.5 w-16 bg-amber-600"></div>
+          <p class="mt-4 text-sm font-light text-gray-500">
+            Créée le {{ formatDate(order.createdAt) }}
+            @if (order.updatedAt !== order.createdAt) {
+              · Mise à jour le {{ formatDate(order.updatedAt) }}
+            }
+          </p>
+        </div>
+
+        @if (order.status === 'PENDING') {
+          <div class="flex flex-wrap gap-2 self-start md:self-auto">
+            <p-button
+              label="Marquer comme payée"
+              icon="pi pi-check-circle"
+              styleClass="bg-amber-600 border-amber-600 hover:bg-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
+              (onClick)="onMarkPaid()"
+            />
+            <p-button
+              label="Annuler"
+              icon="pi pi-times-circle"
+              severity="danger"
+              [outlined]="true"
+              styleClass="rounded-0 text-xs uppercase tracking-wider font-semibold"
+              (onClick)="onMarkCancelled()"
+            />
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="mx-auto max-w-7xl space-y-6 px-4 py-8 md:px-6 md:py-12">
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="border border-gray-100 bg-white p-6">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-900">Client</h2>
+          <dl class="mt-4 space-y-3 text-sm">
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-wider text-gray-500">Nom</dt>
+              <dd class="mt-1 font-light text-gray-900">{{ customerFullName(order) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-wider text-gray-500">Email</dt>
+              <dd class="mt-1 font-light text-gray-900">{{ order.customerEmail }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-wider text-gray-500">Téléphone</dt>
+              <dd class="mt-1 font-light text-gray-900">{{ order.customerPhoneNumber }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="border border-gray-100 bg-white p-6">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-900">Récapitulatif</h2>
+          <dl class="mt-4 space-y-3 text-sm">
+            <div class="flex justify-between">
+              <dt class="font-light text-gray-600">Articles</dt>
+              <dd class="font-medium text-gray-900">{{ order.items.length }}</dd>
+            </div>
+            <div class="flex justify-between border-t border-gray-100 pt-3">
+              <dt class="text-sm font-semibold text-gray-900">Total</dt>
+              <dd class="text-lg font-medium text-amber-700">
+                {{ formatMoney(order.totalAmount) }}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      @if (order.note) {
+        <div class="border border-amber-100 bg-amber-50/30 p-5">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-700">Note client</h2>
+          <p class="mt-2 text-sm font-light text-gray-700">{{ order.note }}</p>
+        </div>
+      }
+
+      <div class="border border-gray-100 bg-white">
+        <div class="border-b border-gray-100 px-6 py-4">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-900">Articles</h2>
+        </div>
+        <p-table
+          [value]="order.items"
+          [tableStyle]="{ 'min-width': '48rem' }"
+          styleClass="order-items-table"
+        >
+          <ng-template #header>
+            <tr>
+              <th class="w-16">Image</th>
+              <th>Produit</th>
+              <th class="w-28">Variante</th>
+              <th class="w-20 text-center">Qté</th>
+              <th class="w-32 text-right">Prix unit.</th>
+              <th class="w-32 text-right">Sous-total</th>
+            </tr>
+          </ng-template>
+
+          <ng-template #body let-item>
+            <tr>
+              <td>
+                @if (getPrimaryImage(item.product); as image) {
+                  <img
+                    [src]="image.url"
+                    [alt]="item.product.name"
+                    class="h-12 w-12 border border-gray-100 object-cover"
+                  />
+                } @else {
+                  <div class="flex h-12 w-12 items-center justify-center border border-gray-100 bg-gray-50">
+                    <i class="pi pi-image text-gray-300"></i>
+                  </div>
+                }
+              </td>
+              <td>
+                <div class="text-sm font-medium text-gray-900">{{ item.product.name }}</div>
+                <div class="text-xs font-light text-gray-500">{{ item.variant.sku }}</div>
+              </td>
+              <td class="text-sm font-light text-gray-600">
+                {{ item.variant.size }} · {{ item.variant.color }}
+              </td>
+              <td class="text-center text-sm font-light text-gray-900">{{ item.quantity }}</td>
+              <td class="text-right text-sm font-light text-gray-900">
+                {{ formatMoney(item.price) }}
+              </td>
+              <td class="text-right text-sm font-medium text-gray-900">
+                {{ formatMoney(item.subtotal) }}
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </section>
+}
+
+<app-confirm-dialog
+  [visible]="confirmVisible()"
+  [data]="confirmData()"
+  (visibleChange)="confirmVisible.set($event)"
+  (confirm)="confirmAction()"
+/>
