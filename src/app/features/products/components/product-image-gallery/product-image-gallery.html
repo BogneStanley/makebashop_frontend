@@ -2,7 +2,9 @@
   <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
     <div>
       <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-900">Galerie</h2>
-      <p class="mt-1 text-xs font-light text-gray-500">Glissez-déposez pour réordonner les images.</p>
+      <p class="mt-1 text-xs font-light text-gray-500">
+        Glissez-déposez pour réordonner les images.
+      </p>
     </div>
     <label
       class="inline-flex cursor-pointer items-center gap-2 border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-amber-800 transition-colors hover:bg-amber-100"
@@ -11,7 +13,14 @@
     >
       <i class="pi pi-upload"></i>
       Ajouter des images
-      <input type="file" accept="image/*" multiple class="hidden" [disabled]="disabled()" (change)="onFileSelect($event)" />
+      <input
+        type="file"
+        accept="image/*"
+        multiple
+        class="hidden"
+        [disabled]="disabled()"
+        (change)="onFileSelect($event)"
+      />
     </label>
   </div>
 
@@ -21,51 +30,107 @@
       <p class="text-sm font-light text-gray-500">Aucune image pour ce produit.</p>
     </div>
   } @else {
-    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-      @for (image of images(); track image.id ?? image.url ?? $index; let index = $index) {
-        <article
-          class="group relative border border-gray-100 bg-white"
-          draggable="true"
-          (dragstart)="onDragStart(index)"
-          (dragover)="onDragOver($event)"
-          (drop)="onDrop(index)"
-        >
-          @if (image.url) {
-            <img [src]="image.url" [alt]="image.name" class="aspect-square w-full object-cover" />
-          } @else {
-            <div class="flex aspect-square items-center justify-center bg-gray-50">
-              <i class="pi pi-image text-2xl text-gray-300"></i>
-            </div>
-          }
+    <div class="mb-4 flex flex-wrap items-center gap-3 border-b border-gray-100 pb-4">
+      <label class="flex cursor-pointer items-center gap-2 text-xs font-medium text-gray-600">
+        <p-checkbox
+          [binary]="true"
+          [ngModel]="allSelected()"
+          (ngModelChange)="toggleAll($event)"
+          [disabled]="disabled()"
+        />
+        Tout sélectionner
+      </label>
 
-          @if (image.isPrimary) {
-            <p-tag
-              value="Principale"
-              severity="warn"
-              class="absolute left-2 top-2"
+      @if (selectionCount() > 0) {
+        <div class="flex flex-wrap gap-2">
+          @if (canBulkSetPrimary()) {
+            <p-button
+              label="Définir comme principale"
+              icon="pi pi-star"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              styleClass="rounded-0 text-[10px] uppercase tracking-wider font-semibold"
+              [disabled]="disabled()"
+              (onClick)="bulkSetPrimary()"
             />
           }
+          <p-button
+            [label]="'Supprimer la sélection (' + selectionCount() + ')'"
+            icon="pi pi-trash"
+            severity="danger"
+            [outlined]="true"
+            size="small"
+            styleClass="rounded-0 text-[10px] uppercase tracking-wider font-semibold"
+            [disabled]="disabled()"
+            (onClick)="openBulkDeleteDialog()"
+          />
+        </div>
+      }
+    </div>
 
-          <div class="absolute inset-x-0 bottom-0 flex gap-1 bg-black/50 p-2 opacity-0 transition-opacity group-hover:opacity-100">
-            @if (!image.isPrimary && image.id) {
-              <p-button
-                label="Principale"
-                size="small"
-                styleClass="flex-1 text-[10px] uppercase"
-                [disabled]="disabled()"
-                (onClick)="onSetPrimary(image.id)"
-              />
-            }
-            @if (image.id) {
-              <p-button
-                icon="pi pi-trash"
-                severity="danger"
-                size="small"
-                [disabled]="disabled()"
-                (onClick)="openDeleteDialog(image.id)"
-              />
+    <div
+      class="gallery-grid"
+      cdkDropList
+      cdkDropListOrientation="mixed"
+      [cdkDropListData]="images()"
+      [cdkDropListDisabled]="disabled()"
+      (cdkDropListDropped)="onDrop($event)"
+    >
+      @for (image of images(); track image.id) {
+        <article
+          class="gallery-card"
+          [class.gallery-card--primary]="image.isPrimary"
+          cdkDrag
+          [cdkDragData]="image"
+          [cdkDragDisabled]="disabled()"
+        >
+          <div class="gallery-card__drop-placeholder" *cdkDragPlaceholder></div>
+
+          <div class="gallery-card__header">
+            <p-checkbox
+              [binary]="true"
+              [ngModel]="isSelected(image.id)"
+              (ngModelChange)="toggleSelection(image.id, $event)"
+              [disabled]="disabled() || image.id === undefined"
+            />
+            @if (image.isPrimary) {
+              <p-tag value="Principale" severity="warn" styleClass="text-[10px]" />
             }
           </div>
+
+          <div class="gallery-card__frame">
+            <button
+              type="button"
+              class="gallery-card__drag-handle"
+              cdkDragHandle
+              aria-label="Déplacer l'image"
+              [disabled]="disabled()"
+            >
+              <i class="pi pi-arrows-alt"></i>
+            </button>
+
+            @if (image.url) {
+              <button
+                type="button"
+                class="gallery-card__preview"
+                aria-label="Voir l'image en plein écran"
+                (click)="openViewer($index)"
+              >
+                <img
+                  [src]="image.url"
+                  [alt]="image.name"
+                  class="gallery-card__image"
+                />
+              </button>
+            } @else {
+              <div class="gallery-card__placeholder">
+                <i class="pi pi-image text-xl text-gray-300"></i>
+              </div>
+            }
+          </div>
+
+          <p class="gallery-card__name" [title]="image.name">{{ image.name }}</p>
         </article>
       }
     </div>
@@ -77,4 +142,12 @@
   [data]="confirmData()"
   (visibleChange)="confirmVisible.set($event)"
   (confirm)="confirmDelete()"
+/>
+
+<app-image-lightbox
+  [visible]="viewerOpen()"
+  [images]="viewerImages()"
+  [activeIndex]="viewerIndex()"
+  (visibleChange)="viewerOpen.set($event)"
+  (activeIndexChange)="onViewerIndexChange($event)"
 />

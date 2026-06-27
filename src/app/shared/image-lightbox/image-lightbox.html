@@ -1,0 +1,90 @@
+@if (visible() && currentImage(); as image) {
+  <div class="lightbox" (click)="close()" role="dialog" aria-modal="true" [attr.aria-label]="image.name">
+    <div class="lightbox__panel" (click)="$event.stopPropagation()">
+      <div class="lightbox__header">
+        <p class="lightbox__title">{{ image.name }}</p>
+        <p-button
+          icon="pi pi-times"
+          [rounded]="true"
+          [text]="true"
+          severity="secondary"
+          ariaLabel="Fermer"
+          (onClick)="close()"
+        />
+      </div>
+
+      <div
+        class="lightbox__viewport"
+        (wheel)="onWheel($event)"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp($event)"
+        (pointercancel)="onPointerUp($event)"
+        [class.lightbox__viewport--zoomed]="zoom() > 1"
+      >
+        <img
+          [src]="image.url"
+          [alt]="image.name"
+          class="lightbox__image"
+          [style.transform]="imageTransform()"
+          draggable="false"
+        />
+      </div>
+
+      <div class="lightbox__footer">
+        <div class="lightbox__controls">
+          <p-button
+            icon="pi pi-search-minus"
+            [rounded]="true"
+            [text]="true"
+            severity="secondary"
+            ariaLabel="Zoom arrière"
+            [disabled]="zoom() <= minZoom"
+            (onClick)="zoomOut()"
+          />
+          <span class="lightbox__zoom-label">{{ (zoom() * 100) | number: '1.0-0' }}%</span>
+          <p-button
+            icon="pi pi-search-plus"
+            [rounded]="true"
+            [text]="true"
+            severity="secondary"
+            ariaLabel="Zoom avant"
+            [disabled]="zoom() >= maxZoom"
+            (onClick)="zoomIn()"
+          />
+          <p-button
+            label="Réinitialiser"
+            [text]="true"
+            severity="secondary"
+            size="small"
+            styleClass="text-xs uppercase tracking-wider"
+            [disabled]="zoom() === minZoom && panX() === 0 && panY() === 0"
+            (onClick)="resetZoom()"
+          />
+        </div>
+
+        @if (canNavigate()) {
+          <div class="lightbox__nav">
+            <p-button
+              icon="pi pi-chevron-left"
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"
+              ariaLabel="Image précédente"
+              (onClick)="previous()"
+            />
+            <span class="lightbox__counter">{{ activeIndex() + 1 }} / {{ images().length }}</span>
+            <p-button
+              icon="pi pi-chevron-right"
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"
+              ariaLabel="Image suivante"
+              (onClick)="next()"
+            />
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

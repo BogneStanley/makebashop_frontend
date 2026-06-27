@@ -1,15 +1,44 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragHandle,
+  CdkDragPlaceholder,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { ProductImageResponse } from '../../../../core/models/products/product-response.models';
 import { UpdateImagePositionRequest } from '../../../../core/models/products/product-request.models';
 import { ConfirmDialog, ConfirmDialogData } from '../../../../shared/confirm-dialog/confirm-dialog';
+import { ImageLightbox, ImageLightboxItem } from '../../../../shared/image-lightbox/image-lightbox';
 
 type GalleryImage = ProductImageResponse & { file?: File };
 
 @Component({
   selector: 'app-product-image-gallery',
-  imports: [ButtonModule, TagModule, ConfirmDialog],
+  imports: [
+    FormsModule,
+    ButtonModule,
+    CheckboxModule,
+    TagModule,
+    ConfirmDialog,
+    ImageLightbox,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
+    CdkDragPlaceholder,
+  ],
   templateUrl: './product-image-gallery.html',
   styleUrl: './product-image-gallery.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,10 +52,30 @@ export class ProductImageGallery {
   reorder = output<UpdateImagePositionRequest[]>();
   upload = output<File[]>();
 
-  draggedIndex = signal<number | null>(null);
+  selectedIds = signal<Set<number>>(new Set());
+  viewerOpen = signal(false);
+  viewerIndex = signal(0);
+
+  viewerImages = computed((): ImageLightboxItem[] =>
+    this.images()
+      .filter((image) => !!image.url)
+      .map((image) => ({ url: image.url, name: image.name })),
+  );
+
   confirmVisible = signal(false);
   confirmData = signal<ConfirmDialogData | null>(null);
   private pendingDeleteIds: number[] = [];
+
+  selectionCount = computed(() => this.selectedIds().size);
+
+  allSelected = computed(() => {
+    const ids = this.images()
+      .map((image) => image.id)
+      .filter((id): id is number => id !== undefined);
+    return ids.length > 0 && ids.every((id) => this.selectedIds().has(id));
+  });
+
+  canBulkSetPrimary = computed(() => this.selectionCount() === 1);
 
   onFileSelect(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -37,41 +86,83 @@ export class ProductImageGallery {
     input.value = '';
   }
 
-  onDragStart(index: number): void {
-    if (!this.disabled()) {
-      this.draggedIndex.set(index);
-    }
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-  }
-
-  onDrop(targetIndex: number): void {
-    const sourceIndex = this.draggedIndex();
-    this.draggedIndex.set(null);
-    if (sourceIndex === null || sourceIndex === targetIndex) {
+  onDrop(event: CdkDragDrop<GalleryImage[]>): void {
+    if (event.previousIndex === event.currentIndex) {
       return;
     }
 
     const items = [...this.images()];
-    const [moved] = items.splice(sourceIndex, 1);
-    items.splice(targetIndex, 0, moved);
+    moveItemInArray(items, event.previousIndex, event.currentIndex);
 
     this.reorder.emit(
       items.map((image, index) => ({ imageId: image.id, position: index })),
     );
   }
 
-  onSetPrimary(imageId: number): void {
-    this.setPrimary.emit(imageId);
+  openViewer(index: number): void {
+    const image = this.images()[index];
+    if (!image?.url) {
+      return;
+    }
+    const viewerIndex = this.viewerImages().findIndex(
+      (item) => item.url === image.url && item.name === image.name,
+    );
+    if (viewerIndex === -1) {
+      return;
+    }
+    this.viewerIndex.set(viewerIndex);
+    this.viewerOpen.set(true);
   }
 
-  openDeleteDialog(imageId: number): void {
-    this.pendingDeleteIds = [imageId];
+  onViewerIndexChange(index: number): void {
+    this.viewerIndex.set(index);
+  }
+
+  isSelected(imageId: number | undefined): boolean {
+    return imageId !== undefined && this.selectedIds().has(imageId);
+  }
+
+  toggleSelection(imageId: number | undefined, selected: boolean): void {
+    if (imageId === undefined) {
+      return;
+    }
+    const next = new Set(this.selectedIds());
+    if (selected) {
+      next.add(imageId);
+    } else {
+      next.delete(imageId);
+    }
+    this.selectedIds.set(next);
+  }
+
+  toggleAll(selected: boolean): void {
+    if (selected) {
+      const ids = this.images()
+        .map((image) => image.id)
+        .filter((id): id is number => id !== undefined);
+      this.selectedIds.set(new Set(ids));
+    } else {
+      this.selectedIds.set(new Set());
+    }
+  }
+
+  bulkSetPrimary(): void {
+    const [imageId] = [...this.selectedIds()];
+    if (imageId !== undefined) {
+      this.setPrimary.emit(imageId);
+      this.selectedIds.set(new Set());
+    }
+  }
+
+  openBulkDeleteDialog(): void {
+    const count = this.selectionCount();
+    if (count === 0) {
+      return;
+    }
+    this.pendingDeleteIds = [...this.selectedIds()];
     this.confirmData.set({
-      title: 'Supprimer l\'image',
-      message: 'Êtes-vous sûr de vouloir supprimer cette image ?',
+      title: 'Supprimer les images',
+      message: `Supprimer ${count} image(s) sélectionnée(s) ?`,
       confirmLabel: 'Supprimer',
       destructive: true,
     });
@@ -81,6 +172,7 @@ export class ProductImageGallery {
   confirmDelete(): void {
     this.deleteImages.emit(this.pendingDeleteIds);
     this.pendingDeleteIds = [];
+    this.selectedIds.set(new Set());
     this.confirmVisible.set(false);
   }
 }
