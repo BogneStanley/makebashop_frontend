@@ -1,0 +1,243 @@
+<app-header></app-header>
+
+<main class="min-h-screen bg-[#faf6f0]">
+  <div class="border-b border-amber-100/50 py-10">
+    <div class="max-w-7xl mx-auto px-6">
+      <h1 class="text-4xl font-thin text-gray-900 tracking-wide">Finaliser la commande</h1>
+      <div class="w-16 h-0.5 bg-amber-600 mt-3"></div>
+      <p class="text-sm font-light text-gray-500 mt-4 max-w-2xl">
+        Vérifiez votre panier et renseignez vos coordonnées pour confirmer votre commande via
+        WhatsApp.
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <!-- Customer Information -->
+      <div class="lg:col-span-2">
+        <div class="bg-white border border-gray-100 p-6 md:p-8">
+          <h2 class="text-sm font-semibold tracking-wider uppercase text-gray-900 mb-6">
+            Vos informations
+          </h2>
+
+          @if (submitError()) {
+            <div
+              role="alert"
+              class="mb-6 px-4 py-3 border border-red-200 bg-red-50 text-sm text-red-700"
+            >
+              {{ submitError() }}
+            </div>
+          }
+
+          <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()" novalidate>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label
+                  for="firstName"
+                  class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2"
+                >
+                  Prénom
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  pInputText
+                  formControlName="customerFirstName"
+                  autocomplete="given-name"
+                  placeholder="Aminata"
+                  class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
+                  [class.border-red-400]="firstNameControl.invalid && firstNameControl.touched"
+                />
+                @if (firstNameControl.invalid && firstNameControl.touched) {
+                  <p class="mt-2 text-xs text-red-600">Le prénom est requis (2 caractères minimum).</p>
+                }
+              </div>
+
+              <div>
+                <label
+                  for="lastName"
+                  class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2"
+                >
+                  Nom
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  pInputText
+                  formControlName="customerLastName"
+                  autocomplete="family-name"
+                  placeholder="Diallo"
+                  class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
+                  [class.border-red-400]="lastNameControl.invalid && lastNameControl.touched"
+                />
+                @if (lastNameControl.invalid && lastNameControl.touched) {
+                  <p class="mt-2 text-xs text-red-600">Le nom est requis (2 caractères minimum).</p>
+                }
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <label
+                for="email"
+                class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2"
+              >
+                Email (optionnel)
+              </label>
+              <input
+                id="email"
+                type="email"
+                pInputText
+                formControlName="customerEmail"
+                autocomplete="email"
+                placeholder="aminata@email.com"
+                class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
+                [class.border-red-400]="emailControl.invalid && emailControl.touched"
+              />
+              @if (emailControl.invalid && emailControl.touched) {
+                <p class="mt-2 text-xs text-red-600">
+                  Veuillez saisir une adresse email valide.
+                </p>
+              }
+            </div>
+
+            <div class="mb-6">
+              <label
+                for="phone"
+                class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2"
+              >
+                Téléphone
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                pInputText
+                formControlName="customerPhoneNumber"
+                autocomplete="tel"
+                placeholder="+221 77 123 45 67"
+                class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
+                [class.border-red-400]="phoneControl.invalid && phoneControl.touched"
+              />
+              @if (phoneControl.invalid && phoneControl.touched) {
+                <p class="mt-2 text-xs text-red-600">
+                  Veuillez saisir un numéro de téléphone valide.
+                </p>
+              }
+            </div>
+
+            <div class="mb-8">
+              <label
+                for="note"
+                class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2"
+              >
+                Note (optionnel)
+              </label>
+              <textarea
+                id="note"
+                pTextarea
+                formControlName="note"
+                rows="3"
+                placeholder="Instructions de livraison, préférences..."
+                class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm resize-none"
+              ></textarea>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button
+                pButton
+                type="submit"
+                label="Commander via WhatsApp"
+                icon="pi pi-whatsapp"
+                [loading]="isSubmitting()"
+                [disabled]="isSubmitting()"
+                class="flex-1 bg-green-600 border-green-600 hover:bg-green-700 hover:border-green-700 rounded-0 text-sm uppercase tracking-wider font-semibold"
+              ></button>
+              <button
+                pButton
+                type="button"
+                label="Retour au panier"
+                icon="pi pi-arrow-left"
+                [text]="true"
+                class="text-sm text-gray-600 hover:text-amber-600"
+                routerLink="/cart"
+              ></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="lg:col-span-1">
+        <div class="bg-white border border-gray-100 p-6 sticky top-6">
+          <h3 class="text-sm font-semibold tracking-wider uppercase text-gray-900 mb-6">
+            Récapitulatif
+          </h3>
+
+          <div class="space-y-4 mb-6">
+            @for (item of cartItems(); track item.id) {
+              <div class="flex gap-3 pb-4 border-b border-gray-50 last:border-0 last:pb-0">
+                <img
+                  [src]="item.product.image"
+                  [alt]="item.product.name"
+                  class="w-16 h-20 object-cover bg-gray-50 flex-shrink-0"
+                />
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">{{ item.product.name }}</p>
+                  @if (item.selectedSize) {
+                    <p class="text-xs text-gray-500 mt-0.5">Taille : {{ item.selectedSize }}</p>
+                  }
+                  @if (item.selectedColor) {
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <span class="text-xs text-gray-500">Couleur :</span>
+                      <span
+                        class="w-3 h-3 rounded-full border border-gray-200"
+                        [style.backgroundColor]="item.selectedColor"
+                      ></span>
+                    </div>
+                  }
+                  <div class="flex justify-between items-center mt-2">
+                    <span class="text-xs text-gray-500">Qté : {{ item.quantity }}</span>
+                    <span class="text-sm font-semibold text-gray-900">
+                      {{
+                        item.product.price * item.quantity
+                          | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR'
+                      }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="border-t border-gray-100 pt-4 space-y-3">
+            <div class="flex justify-between">
+              <span class="text-sm font-light text-gray-600"
+                >Sous-total ({{ cartCount() }} articles)</span
+              >
+              <span class="text-sm font-medium text-gray-900">
+                {{ cartTotal() | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm font-light text-gray-600">Livraison</span>
+              <span class="text-sm font-medium text-gray-500">À convenir via WhatsApp</span>
+            </div>
+            <div class="flex justify-between pt-3 border-t border-gray-100">
+              <span class="text-sm font-semibold text-gray-900">Total</span>
+              <span class="text-base font-bold text-gray-900">
+                {{ cartTotal() | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
+              </span>
+            </div>
+          </div>
+
+          <p class="text-xs font-light text-gray-500 mt-6 leading-relaxed">
+            En cliquant sur « Commander via WhatsApp », votre commande sera enregistrée et vous
+            serez redirigé vers WhatsApp pour finaliser avec notre équipe.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<app-footer></app-footer>

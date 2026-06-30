@@ -1,0 +1,11 @@
+:host ::ng-deep {
+  .p-button {
+    font-family: inherit;
+  }
+
+  .p-inputtext:focus,
+  .p-textarea:focus {
+    outline: none;
+    box-shadow: none;
+  }
+}
