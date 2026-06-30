@@ -15,7 +15,8 @@ import {
   ProductImageResponse,
   ProductResponse,
 } from '../../../core/models/products/product-response.models';
-import { getMockProductById, mockCategories } from '../../../core/models/products/product.mock';
+import { getMockProductById } from '../../../core/models/products/product.mock';
+import { CategoryService } from '../../../core/services/category.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/confirm-dialog/confirm-dialog';
 import { ProductEditHeader } from '../components/product-edit-header/product-edit-header';
@@ -44,8 +45,9 @@ export class ProductEditPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private notifications = inject(NotificationService);
+  private categoryService = inject(CategoryService);
 
-  categories = mockCategories;
+  categories = this.categoryService.categoriesList;
 
   product = signal<ProductResponse | null>(null);
   activeTab = signal<'general' | 'variants' | 'images'>('general');
@@ -80,6 +82,8 @@ export class ProductEditPage implements OnInit {
   private pendingVariantIds = signal<number[]>([]);
 
   ngOnInit(): void {
+    this.categoryService.loadCategories().subscribe();
+
     const id = Number(this.route.snapshot.paramMap.get('id'));
     setTimeout(() => {
       const loaded = getMockProductById(id);
@@ -227,7 +231,7 @@ export class ProductEditPage implements OnInit {
               name: g.name,
               description: g.description,
               isActive: g.isActive,
-              categories: this.categories.filter((c) => g.categoryIds.includes(c.id)),
+              categories: this.categories().filter((c) => g.categoryIds.includes(c.id)),
             }
           : current,
       );

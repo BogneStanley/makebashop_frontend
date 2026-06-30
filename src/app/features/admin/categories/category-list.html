@@ -22,6 +22,12 @@
   </div>
 
   <div class="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
+    @if (loading()) {
+      <div class="flex flex-col items-center justify-center gap-4 py-16" role="status" aria-busy="true">
+        <p-progressSpinner ariaLabel="Chargement des catégories" />
+        <p class="text-sm font-light text-gray-500">Chargement des catégories…</p>
+      </div>
+    } @else {
     <div class="border border-gray-100 bg-white">
       <p-table
         [value]="categories()"
@@ -75,6 +81,7 @@
         </ng-template>
       </p-table>
     </div>
+    }
   </div>
 </section>
 
@@ -157,6 +164,8 @@
         form="category-form"
         label="Enregistrer"
         icon="pi pi-check"
+        [loading]="saving()"
+        [disabled]="saving()"
         class="bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
       ></button>
     </div>
@@ -190,6 +199,8 @@
       label="Supprimer"
       severity="danger"
       icon="pi pi-trash"
+      [loading]="deleting()"
+      [disabled]="deleting()"
       (onClick)="confirmDelete()"
     ></p-button>
   </div>

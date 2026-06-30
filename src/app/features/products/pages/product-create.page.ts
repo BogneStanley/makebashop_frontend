@@ -4,6 +4,7 @@ import {
   computed,
   inject,
   OnDestroy,
+  OnInit,
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
@@ -13,7 +14,7 @@ import {
   UpdateImagePositionRequest,
 } from '../../../core/models/products/product-request.models';
 import { ProductImageResponse } from '../../../core/models/products/product-response.models';
-import { mockCategories } from '../../../core/models/products/product.mock';
+import { CategoryService } from '../../../core/services/category.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ProductGeneralForm } from '../components/product-general-form/product-general-form';
 import { ProductImageGallery } from '../components/product-image-gallery/product-image-gallery';
@@ -27,11 +28,12 @@ import { isVariantValid, VariantRow } from '../components/product-variant-table/
   styleUrl: './product-create.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductCreatePage implements OnDestroy {
+export class ProductCreatePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private notifications = inject(NotificationService);
+  private categoryService = inject(CategoryService);
 
-  categories = mockCategories;
+  categories = this.categoryService.categoriesList;
 
   general = signal({ name: '', description: '', categoryIds: [] as number[] });
   variants = signal<VariantRow[]>([]);
@@ -44,6 +46,10 @@ export class ProductCreatePage implements OnDestroy {
 
   showValidation = signal(false);
   saving = signal(false);
+
+  ngOnInit(): void {
+    this.categoryService.loadCategories().subscribe();
+  }
 
   ngOnDestroy(): void {
     for (const image of this.images()) {

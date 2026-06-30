@@ -27,7 +27,7 @@
     }
 
     <app-product-filters
-      [categories]="categories"
+      [categories]="categories()"
       [filters]="filters()"
       [disabled]="loading()"
       (filtersChange)="onFiltersChange($event)"

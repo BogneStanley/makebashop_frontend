@@ -12,7 +12,8 @@ import { MessageModule } from 'primeng/message';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import { CategoryResponse } from '../../../core/models/products/product-response.models';
 import { ProductListItemView, toProductListItemView } from '../../../core/models/products/product.models';
-import { mockCategories, mockProductListItems } from '../../../core/models/products/product.mock';
+import { mockProductListItems } from '../../../core/models/products/product.mock';
+import { CategoryService } from '../../../core/services/category.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/confirm-dialog/confirm-dialog';
 import { ProductFilters, ProductListFilters } from '../components/product-filters/product-filters';
@@ -43,8 +44,9 @@ function getMinVariantPrice(product: ProductListItemView): number {
 export class ProductListPage implements OnInit {
   private router = inject(Router);
   private notifications = inject(NotificationService);
+  private categoryService = inject(CategoryService);
 
-  categories = mockCategories;
+  categories = this.categoryService.categoriesList;
 
   private allProducts = signal<ProductListItemView[]>(
     mockProductListItems.map((product) => ({ ...product })),
@@ -96,6 +98,7 @@ export class ProductListPage implements OnInit {
   activeFilterLabels = computed(() => this.buildActiveFilterLabels(this.filters()));
 
   ngOnInit(): void {
+    this.categoryService.loadCategories().subscribe();
     setTimeout(() => this.loading.set(false), 400);
   }
 
@@ -182,7 +185,7 @@ export class ProductListPage implements OnInit {
       labels.push(filters.inStock ? 'En stock' : 'Rupture de stock');
     }
     if (filters.categoryIds?.length) {
-      const names = this.categories
+      const names = this.categories()
         .filter((category: CategoryResponse) => filters.categoryIds!.includes(category.id))
         .map((category) => category.name);
       if (names.length) {

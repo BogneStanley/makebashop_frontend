@@ -1,15 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DrawerModule } from 'primeng/drawer';
 import { InputTextModule } from 'primeng/inputtext';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
-import {
-  Category,
-  CategoryService,
-} from '../../../core/services/category.service';
+import { CategoryResponse } from '../../../core/models/products/product-response.models';
+import { CategoryService } from '../../../core/services/category.service';
 
 @Component({
   selector: 'app-category-list',
@@ -21,21 +21,25 @@ import {
     ButtonModule,
     InputTextModule,
     TextareaModule,
+    ProgressSpinnerModule,
   ],
   templateUrl: './category-list.html',
   styleUrl: './category-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CategoryList {
+export class CategoryList implements OnInit {
   private categoryService = inject(CategoryService);
   private fb = inject(FormBuilder);
 
-  categories = this.categoryService.getCategories();
+  categories = this.categoryService.categoriesList;
+  loading = this.categoryService.isLoading;
 
   isFormDrawerOpen = signal(false);
   isDeleteDialogOpen = signal(false);
-  editingCategory = signal<Category | null>(null);
-  categoryToDelete = signal<Category | null>(null);
+  saving = signal(false);
+  deleting = signal(false);
+  editingCategory = signal<CategoryResponse | null>(null);
+  categoryToDelete = signal<CategoryResponse | null>(null);
 
   categoryForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -50,17 +54,21 @@ export class CategoryList {
     return this.categoryForm.controls.description;
   }
 
+  ngOnInit(): void {
+    this.categoryService.loadCategories().subscribe();
+  }
+
   openCreateDrawer(): void {
     this.editingCategory.set(null);
     this.categoryForm.reset({ name: '', description: '' });
     this.isFormDrawerOpen.set(true);
   }
 
-  openEditDrawer(category: Category): void {
+  openEditDrawer(category: CategoryResponse): void {
     this.editingCategory.set(category);
     this.categoryForm.reset({
       name: category.name,
-      description: category.description,
+      description: category.description ?? '',
     });
     this.isFormDrawerOpen.set(true);
   }
@@ -74,23 +82,25 @@ export class CategoryList {
   saveCategory(): void {
     this.categoryForm.markAllAsTouched();
 
-    if (this.categoryForm.invalid) {
+    if (this.categoryForm.invalid || this.saving()) {
       return;
     }
 
     const input = this.categoryForm.getRawValue();
     const editing = this.editingCategory();
+    const request$ = editing
+      ? this.categoryService.updateCategory(editing.id, input)
+      : this.categoryService.createCategory(input);
 
-    if (editing) {
-      this.categoryService.updateCategory(editing.id, input);
-    } else {
-      this.categoryService.createCategory(input);
-    }
-
-    this.closeFormDrawer();
+    this.saving.set(true);
+    request$.pipe(finalize(() => this.saving.set(false))).subscribe((result) => {
+      if (result) {
+        this.closeFormDrawer();
+      }
+    });
   }
 
-  openDeleteDialog(category: Category): void {
+  openDeleteDialog(category: CategoryResponse): void {
     this.categoryToDelete.set(category);
     this.isDeleteDialogOpen.set(true);
   }
@@ -102,10 +112,19 @@ export class CategoryList {
 
   confirmDelete(): void {
     const category = this.categoryToDelete();
-    if (category) {
-      this.categoryService.deleteCategory(category.id);
+    if (!category || this.deleting()) {
+      return;
     }
-    this.closeDeleteDialog();
+
+    this.deleting.set(true);
+    this.categoryService
+      .deleteCategory(category.id)
+      .pipe(finalize(() => this.deleting.set(false)))
+      .subscribe((success) => {
+        if (success) {
+          this.closeDeleteDialog();
+        }
+      });
   }
 
   formDrawerTitle(): string {

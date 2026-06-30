@@ -1,97 +1,130 @@
-import { Injectable, signal } from '@angular/core';
-
-export interface Category {
-  id: number;
-  name: string;
-  description: string;
-}
-
-export interface CategoryInput {
-  name: string;
-  description: string;
-}
+import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Observable, catchError, finalize, map, of, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { CategoryRequest } from '../models/categories';
+import { ResponseWrapper } from '../models/common/api-wrapper.models';
+import { CategoryResponse } from '../models/products/product-response.models';
+import { mapHttpError } from '../utils/map-http-error';
+import { NotificationService } from './notification.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CategoryService {
-  private categories = signal<Category[]>([
-    {
-      id: 1,
-      name: 'Manteaux',
-      description: 'Manteaux et trench coats pour toutes les saisons.',
-    },
-    {
-      id: 2,
-      name: 'Chemises',
-      description: 'Chemises en lin, coton et matières premium.',
-    },
-    {
-      id: 3,
-      name: 'Vestes',
-      description: 'Blazers et vestes structurées pour un look élégant.',
-    },
-    {
-      id: 4,
-      name: 'Pantalons',
-      description: 'Pantalons taille haute et coupes modernes.',
-    },
-    {
-      id: 5,
-      name: 'Robes',
-      description: 'Robes fluides et pièces iconiques en soie.',
-    },
-    {
-      id: 6,
-      name: 'Accessoires',
-      description: 'Ceintures, foulards et accessoires complémentaires.',
-    },
-  ]);
+  private http = inject(HttpClient);
+  private notifications = inject(NotificationService);
+  private platformId = inject(PLATFORM_ID);
+  private readonly baseUrl = `${environment.apiUrl}/categories`;
 
-  private nextId = 7;
+  private categories = signal<CategoryResponse[]>([]);
+  private loading = signal(false);
 
-  getCategories() {
-    return this.categories;
-  }
+  readonly categoriesList = this.categories.asReadonly();
+  readonly isLoading = this.loading.asReadonly();
 
-  getCategoryById(id: number): Category | undefined {
-    return this.categories().find((c) => c.id === id);
-  }
-
-  createCategory(input: CategoryInput): Category {
-    const category: Category = {
-      id: this.nextId++,
-      name: input.name.trim(),
-      description: input.description.trim(),
-    };
-
-    this.categories.update((items) => [...items, category]);
-    return category;
-  }
-
-  updateCategory(id: number, input: CategoryInput): Category | undefined {
-    const existing = this.getCategoryById(id);
-    if (!existing) {
-      return undefined;
+  loadCategories(): Observable<CategoryResponse[]> {
+    if (!this.isBrowser()) {
+      return of([]);
     }
 
-    const updated: Category = {
-      ...existing,
-      name: input.name.trim(),
-      description: input.description.trim(),
-    };
+    this.loading.set(true);
 
-    this.categories.update((items) => items.map((c) => (c.id === id ? updated : c)));
-    return updated;
+    return this.http.get<ResponseWrapper<CategoryResponse[]>>(this.baseUrl).pipe(
+      map((response) => response.data),
+      tap((data) => this.categories.set(data)),
+      catchError((error) => {
+        this.notifications.error(mapHttpError(error));
+        return of([]);
+      }),
+      finalize(() => this.loading.set(false)),
+    );
   }
 
-  deleteCategory(id: number): boolean {
-    const exists = this.categories().some((c) => c.id === id);
-    if (!exists) {
-      return false;
+  getCategoryById(id: number): Observable<CategoryResponse | null> {
+    if (!this.isBrowser()) {
+      return of(null);
     }
 
-    this.categories.update((items) => items.filter((c) => c.id !== id));
-    return true;
+    return this.http.get<ResponseWrapper<CategoryResponse>>(`${this.baseUrl}/${id}`).pipe(
+      map((response) => response.data),
+      catchError((error) => {
+        this.notifications.error(mapHttpError(error));
+        return of(null);
+      }),
+    );
+  }
+
+  createCategory(input: CategoryRequest): Observable<CategoryResponse | null> {
+    if (!this.isBrowser()) {
+      return of(null);
+    }
+
+    return this.http
+      .post<ResponseWrapper<CategoryResponse>>(this.baseUrl, this.toRequestBody(input))
+      .pipe(
+        map((response) => response.data),
+        tap((created) => {
+          this.categories.update((items) => [...items, created]);
+          this.notifications.success('Catégorie créée avec succès.');
+        }),
+        catchError((error) => {
+          this.notifications.error(mapHttpError(error));
+          return of(null);
+        }),
+      );
+  }
+
+  updateCategory(id: number, input: CategoryRequest): Observable<CategoryResponse | null> {
+    if (!this.isBrowser()) {
+      return of(null);
+    }
+
+    return this.http
+      .put<ResponseWrapper<CategoryResponse>>(`${this.baseUrl}/${id}`, this.toRequestBody(input))
+      .pipe(
+        map((response) => response.data),
+        tap((updated) => {
+          this.categories.update((items) =>
+            items.map((category) => (category.id === id ? updated : category)),
+          );
+          this.notifications.success('Catégorie mise à jour.');
+        }),
+        catchError((error) => {
+          this.notifications.error(mapHttpError(error));
+          return of(null);
+        }),
+      );
+  }
+
+  deleteCategory(id: number): Observable<boolean> {
+    if (!this.isBrowser()) {
+      return of(false);
+    }
+
+    return this.http.delete<ResponseWrapper<null>>(`${this.baseUrl}/${id}`).pipe(
+      tap(() => {
+        this.categories.update((items) => items.filter((category) => category.id !== id));
+        this.notifications.success('Catégorie supprimée.');
+      }),
+      map(() => true),
+      catchError((error) => {
+        this.notifications.error(mapHttpError(error));
+        return of(false);
+      }),
+    );
+  }
+
+  private toRequestBody(input: CategoryRequest): CategoryRequest {
+    const description = input.description?.trim();
+    return {
+      name: input.name.trim(),
+      ...(description ? { description } : {}),
+    };
+  }
+
+  private isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
   }
 }
