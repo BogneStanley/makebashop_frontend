@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -22,11 +23,11 @@ import { CheckboxModule } from 'primeng/checkbox';
 })
 export class Login {
   private authService = inject(AuthService);
+  private notifications = inject(NotificationService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
   isSubmitting = signal(false);
-  loginError = signal<string | null>(null);
 
   loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -42,7 +43,7 @@ export class Login {
     return this.loginForm.controls.password;
   }
 
-  async onSubmit(): Promise<void> {
+  onSubmit(): void {
     this.loginForm.markAllAsTouched();
 
     if (this.loginForm.invalid) {
@@ -50,18 +51,19 @@ export class Login {
     }
 
     this.isSubmitting.set(true);
-    this.loginError.set(null);
 
     const { email, password } = this.loginForm.getRawValue();
-    const result = await this.authService.login(email, password);
 
-    this.isSubmitting.set(false);
+    this.authService.login(email, password).subscribe((result) => {
+      this.isSubmitting.set(false);
 
-    if (result.success) {
-      await this.router.navigate(['/manage/dashboard']);
-      return;
-    }
+      if (result.success) {
+        this.notifications.success('Connexion réussie.');
+        this.router.navigate(['/manage/dashboard']);
+        return;
+      }
 
-    this.loginError.set(result.error ?? 'Une erreur est survenue.');
+      this.notifications.error(result.error ?? 'Une erreur est survenue.');
+    });
   }
 }

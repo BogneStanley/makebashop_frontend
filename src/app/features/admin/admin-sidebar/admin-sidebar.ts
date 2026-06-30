@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, output } from '@angu
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { AuthService } from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 export interface AdminNavItem {
   label: string;
@@ -18,6 +19,7 @@ export interface AdminNavItem {
 })
 export class AdminSidebar {
   private authService = inject(AuthService);
+  private notifications = inject(NotificationService);
   private router = inject(Router);
 
   isOpen = input(false);
@@ -37,7 +39,10 @@ export class AdminSidebar {
   }
 
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+    console.log('logout');
+    this.authService.logout().subscribe(() => {
+      this.notifications.info('Vous êtes déconnecté.');
+      this.router.navigate(['/login']);
+    });
   }
 }

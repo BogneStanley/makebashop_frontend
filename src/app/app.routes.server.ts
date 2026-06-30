@@ -6,11 +6,11 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server,
   },
   {
-    path: 'manage/products/:id/edit',
+    path: 'manage/**',
     renderMode: RenderMode.Server,
   },
   {
-    path: 'manage/orders/:id',
+    path: 'login',
     renderMode: RenderMode.Server,
   },
   {

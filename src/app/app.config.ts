@@ -1,5 +1,7 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { providePrimeNG } from 'primeng/config';
@@ -7,6 +9,8 @@ import Aura from '@primeuix/themes/aura';
 import localeFr from '@angular/common/locales/fr';
 import { registerLocaleData } from '@angular/common';
 import { definePreset } from '@primeuix/themes';
+import { MessageService } from 'primeng/api';
+import { AuthService } from './core/services/auth.service';
 
 registerLocaleData(localeFr);
 
@@ -101,6 +105,9 @@ const MyPreset = definePreset(Aura, {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    MessageService,
+    provideAppInitializer(() => inject(AuthService).ensureSession()),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideBrowserGlobalErrorListeners(),
     providePrimeNG({
       theme: {

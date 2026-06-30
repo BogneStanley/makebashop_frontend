@@ -1,1 +1,21 @@
-/* Layout shell — spacing handled in template */
+.admin-loading {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  background-color: #faf6f0;
+}
+
+.admin-loading__logo {
+  height: 2rem;
+}
+
+.admin-loading__text {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 300;
+  color: #6b7280;
+  letter-spacing: 0.02em;
+}
