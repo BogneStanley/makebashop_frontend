@@ -84,7 +84,7 @@
   [modal]="true"
   appendTo="body"
   [visible]="isFormDrawerOpen()"
-  [style]="{ width: '28rem' }"
+  [style]="{ width: 'min(28rem, 100vw)' }"
   styleClass="category-form-drawer"
   (onHide)="closeFormDrawer()"
 >

@@ -44,7 +44,7 @@
       </ng-template>
 
       <ng-template #body let-product>
-        <tr>
+        <tr class="cursor-pointer" (click)="edit.emit(product.id)">
           <td>
             @if (product.primaryImageUrl) {
               <img
@@ -69,7 +69,7 @@
             {{ product.totalStock }}
           </td>
           <td class="text-sm font-light text-gray-600">{{ categoriesLabel(product) }}</td>
-          <td class="text-right">
+          <td class="text-right" (click)="$event.stopPropagation()">
             <p-button
               icon="pi pi-ellipsis-v"
               [rounded]="true"
