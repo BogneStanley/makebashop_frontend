@@ -10,21 +10,20 @@ import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { finalize } from 'rxjs';
 import { CategoryResponse } from '../../../core/models/products/product-response.models';
-import { ProductListItemView, toProductListItemView } from '../../../core/models/products/product.models';
-import { mockProductListItems } from '../../../core/models/products/product.mock';
+import { ProductResponse } from '../../../core/models/products/product-response.models';
+import {
+  ManagedProductFilters,
+  ProductListItemView,
+  toProductListItemView,
+} from '../../../core/models/products/product.models';
 import { CategoryService } from '../../../core/services/category.service';
+import { ManagedProductService } from '../../../core/services/managed-product.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/confirm-dialog/confirm-dialog';
 import { ProductFilters, ProductListFilters } from '../components/product-filters/product-filters';
 import { ProductTable } from '../components/product-table/product-table';
-
-function getMinVariantPrice(product: ProductListItemView): number {
-  if (product.productVariants.length === 0) {
-    return 0;
-  }
-  return Math.min(...product.productVariants.map((variant) => variant.price.amount));
-}
 
 @Component({
   selector: 'app-product-list-page',
@@ -45,76 +44,47 @@ export class ProductListPage implements OnInit {
   private router = inject(Router);
   private notifications = inject(NotificationService);
   private categoryService = inject(CategoryService);
+  private managedProductService = inject(ManagedProductService);
 
   categories = this.categoryService.categoriesList;
 
-  private allProducts = signal<ProductListItemView[]>(
-    mockProductListItems.map((product) => ({ ...product })),
-  );
-
+  products = signal<ProductListItemView[]>([]);
   loading = signal(true);
+  deleting = signal(false);
   error = signal<string | null>(null);
   page = signal(0);
   pageSize = signal(5);
+  totalElements = signal(0);
   filters = signal<ProductListFilters>({ name: '' });
 
   confirmVisible = signal(false);
   confirmData = signal<ConfirmDialogData | null>(null);
   private pendingDeleteId = signal<number | null>(null);
 
-  filteredProducts = computed(() => {
-    const { name, minPrice, maxPrice, inStock, isActive, categoryIds } = this.filters();
-
-    return this.allProducts().filter((product) => {
-      const matchesName = !name || product.name.toLowerCase().includes(name.toLowerCase());
-      const price = getMinVariantPrice(product);
-      const matchesMinPrice = minPrice === undefined || price >= minPrice;
-      const matchesMaxPrice = maxPrice === undefined || price <= maxPrice;
-      const matchesActive = isActive === undefined || product.isActive === isActive;
-      const matchesStock =
-        inStock === undefined || (inStock ? product.totalStock > 0 : product.totalStock === 0);
-      const matchesCategories =
-        !categoryIds?.length ||
-        product.categories.some((category) => categoryIds.includes(category.id));
-
-      return (
-        matchesName &&
-        matchesMinPrice &&
-        matchesMaxPrice &&
-        matchesActive &&
-        matchesStock &&
-        matchesCategories
-      );
-    });
-  });
-
-  totalElements = computed(() => this.filteredProducts().length);
-
-  paginatedProducts = computed(() => {
-    const start = this.page() * this.pageSize();
-    return this.filteredProducts().slice(start, start + this.pageSize());
-  });
-
+  paginatedProducts = computed(() => this.products());
   activeFilterLabels = computed(() => this.buildActiveFilterLabels(this.filters()));
 
   ngOnInit(): void {
     this.categoryService.loadCategories().subscribe();
-    setTimeout(() => this.loading.set(false), 400);
+    this.loadProducts();
   }
 
   onFiltersChange(filters: ProductListFilters): void {
     this.filters.set(filters);
     this.page.set(0);
+    this.loadProducts();
   }
 
   clearAllFilters(): void {
     this.filters.set({ name: '' });
     this.page.set(0);
+    this.loadProducts();
   }
 
   onPageChange(event: PaginatorState): void {
     this.page.set(event.page ?? 0);
     this.pageSize.set(event.rows ?? 5);
+    this.loadProducts();
   }
 
   goToCreate(): void {
@@ -122,21 +92,32 @@ export class ProductListPage implements OnInit {
   }
 
   onEdit(productId: number): void {
-    this.router.navigate(['/manage/products', productId, 'edit']);
+    const product = this.products().find((item) => item.id === productId);
+    this.router.navigate(['/manage/products', productId, 'edit'], {
+      state: product ? { product } : undefined,
+    });
   }
 
   onActivate(productId: number): void {
-    this.updateProductStatus(productId, true);
-    this.notifications.success('Produit activé (mock).');
+    this.managedProductService.activateProduct(productId).subscribe((product) => {
+      if (product) {
+        this.updateProductInList(product);
+        this.notifications.success('Produit activé.');
+      }
+    });
   }
 
   onDeactivate(productId: number): void {
-    this.updateProductStatus(productId, false);
-    this.notifications.info('Produit désactivé (mock).');
+    this.managedProductService.deactivateProduct(productId).subscribe((product) => {
+      if (product) {
+        this.updateProductInList(product);
+        this.notifications.info('Produit désactivé.');
+      }
+    });
   }
 
   onDeleteRequest(productId: number): void {
-    const product = this.allProducts().find((item) => item.id === productId);
+    const product = this.products().find((item) => item.id === productId);
     this.pendingDeleteId.set(productId);
     this.confirmData.set({
       title: 'Supprimer le produit',
@@ -149,19 +130,62 @@ export class ProductListPage implements OnInit {
 
   confirmDelete(): void {
     const productId = this.pendingDeleteId();
-    if (productId !== null) {
-      this.allProducts.update((items) => items.filter((item) => item.id !== productId));
-      this.notifications.success('Produit supprimé (mock).');
+    if (productId === null || this.deleting()) {
+      return;
     }
-    this.pendingDeleteId.set(null);
-    this.confirmVisible.set(false);
+
+    this.deleting.set(true);
+    this.managedProductService
+      .deleteProduct(productId)
+      .pipe(finalize(() => this.deleting.set(false)))
+      .subscribe((success) => {
+        if (success) {
+          this.notifications.success('Produit supprimé.');
+          this.loadProducts();
+        }
+        this.pendingDeleteId.set(null);
+        this.confirmVisible.set(false);
+      });
   }
 
-  private updateProductStatus(productId: number, isActive: boolean): void {
-    this.allProducts.update((items) =>
-      items.map((item) =>
-        item.id === productId ? toProductListItemView({ ...item, isActive }) : item,
-      ),
+  private loadProducts(): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    const uiFilters = this.filters();
+    const apiFilters: ManagedProductFilters = {
+      page: this.page(),
+      size: this.pageSize(),
+      sortBy: 'name',
+      sortOrder: 'asc',
+      name: uiFilters.name,
+      minPrice: uiFilters.minPrice,
+      maxPrice: uiFilters.maxPrice,
+      inStock: uiFilters.inStock,
+      isActive: uiFilters.isActive,
+      categoryIds: uiFilters.categoryIds,
+    };
+
+    this.managedProductService
+      .listManaged(apiFilters)
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe((result) => {
+        if (!result) {
+          this.error.set('Impossible de charger les produits.');
+          this.products.set([]);
+          this.totalElements.set(0);
+          return;
+        }
+
+        this.products.set(result.content.map(toProductListItemView));
+        this.totalElements.set(result.totalElements);
+      });
+  }
+
+  private updateProductInList(product: ProductResponse): void {
+    const view = toProductListItemView(product);
+    this.products.update((items) =>
+      items.map((item) => (item.id === view.id ? view : item)),
     );
   }
 

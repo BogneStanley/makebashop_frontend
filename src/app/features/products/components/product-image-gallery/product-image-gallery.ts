@@ -95,7 +95,7 @@ export class ProductImageGallery {
     moveItemInArray(items, event.previousIndex, event.currentIndex);
 
     this.reorder.emit(
-      items.map((image, index) => ({ imageId: image.id, position: index })),
+      items.map((image, index) => ({ imageId: image.id, position: index + 1 })),
     );
   }
 

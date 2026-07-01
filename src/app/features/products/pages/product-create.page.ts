@@ -9,12 +9,14 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { finalize } from 'rxjs';
 import {
   CreateProductRequest,
   UpdateImagePositionRequest,
 } from '../../../core/models/products/product-request.models';
 import { ProductImageResponse } from '../../../core/models/products/product-response.models';
 import { CategoryService } from '../../../core/services/category.service';
+import { ManagedProductService } from '../../../core/services/managed-product.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ProductGeneralForm } from '../components/product-general-form/product-general-form';
 import { ProductImageGallery } from '../components/product-image-gallery/product-image-gallery';
@@ -32,6 +34,7 @@ export class ProductCreatePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private notifications = inject(NotificationService);
   private categoryService = inject(CategoryService);
+  private managedProductService = inject(ManagedProductService);
 
   categories = this.categoryService.categoriesList;
 
@@ -138,21 +141,31 @@ export class ProductCreatePage implements OnInit, OnDestroy {
       return;
     }
 
-    const payload: CreateProductRequest & { imageFiles: File[] } = {
-      ...this.general(),
-      productVariants: this.variants(),
-      imageFiles: this.images()
-        .filter((image) => image.file)
-        .map((image) => image.file!),
+    const request: CreateProductRequest = {
+      name: this.general().name.trim(),
+      description: this.general().description.trim(),
+      categoryIds: this.general().categoryIds,
+      productVariants: this.variants().map((variant) => ({
+        sku: variant.sku.trim(),
+        price: variant.price,
+        stockQuantity: variant.stockQuantity,
+        size: variant.size.trim(),
+        color: variant.color,
+      })),
     };
+    const imageFiles = this.images()
+      .filter((image) => image.file)
+      .map((image) => image.file!);
 
     this.saving.set(true);
-    console.log('CreateProductRequest', payload);
-
-    setTimeout(() => {
-      this.saving.set(false);
-      this.notifications.success('Produit enregistré (mock).');
-      this.router.navigate(['/manage/products']);
-    }, 500);
+    this.managedProductService
+      .createProduct(request, imageFiles)
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe((created) => {
+        if (created) {
+          this.notifications.success('Produit créé avec succès.');
+          this.router.navigate(['/manage/products', created.id, 'edit']);
+        }
+      });
   }
 }

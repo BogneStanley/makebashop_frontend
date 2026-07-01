@@ -10,13 +10,18 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { TabsModule } from 'primeng/tabs';
-import { UpdateImagePositionRequest } from '../../../core/models/products/product-request.models';
+import { Observable, concatMap, finalize, from, last } from 'rxjs';
+import {
+  ProductVariantRequest,
+  UpdateImagePositionRequest,
+} from '../../../core/models/products/product-request.models';
 import {
   ProductImageResponse,
   ProductResponse,
+  ProductVariantResponse,
 } from '../../../core/models/products/product-response.models';
-import { getMockProductById } from '../../../core/models/products/product.mock';
 import { CategoryService } from '../../../core/services/category.service';
+import { ManagedProductService } from '../../../core/services/managed-product.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/confirm-dialog/confirm-dialog';
 import { ProductEditHeader } from '../components/product-edit-header/product-edit-header';
@@ -24,6 +29,15 @@ import { ProductGeneralForm } from '../components/product-general-form/product-g
 import { ProductImageGallery } from '../components/product-image-gallery/product-image-gallery';
 import { ProductVariantTable } from '../components/product-variant-table/product-variant-table';
 import { isVariantValid } from '../components/product-variant-table/variant-fields';
+
+type VariantRow = {
+  id?: number;
+  sku: string;
+  price: number;
+  stockQuantity: number;
+  size: string;
+  color: string;
+};
 
 @Component({
   selector: 'app-product-edit-page',
@@ -46,6 +60,7 @@ export class ProductEditPage implements OnInit {
   private router = inject(Router);
   private notifications = inject(NotificationService);
   private categoryService = inject(CategoryService);
+  private managedProductService = inject(ManagedProductService);
 
   categories = this.categoryService.categoriesList;
 
@@ -62,9 +77,8 @@ export class ProductEditPage implements OnInit {
     categoryIds: [] as number[],
   });
 
-  variants = signal<
-    { id?: number; sku: string; price: number; stockQuantity: number; size: string; color: string }[]
-  >([]);
+  variants = signal<VariantRow[]>([]);
+  private originalVariants = signal<VariantRow[]>([]);
 
   images = signal<(ProductImageResponse & { file?: File })[]>([]);
 
@@ -85,34 +99,24 @@ export class ProductEditPage implements OnInit {
     this.categoryService.loadCategories().subscribe();
 
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    setTimeout(() => {
-      const loaded = getMockProductById(id);
-      if (!loaded) {
-        this.error.set('Produit introuvable.');
-        this.loading.set(false);
-        return;
-      }
+    const stateProduct = history.state?.['product'] as ProductResponse | undefined;
 
-      this.product.set({ ...loaded });
-      this.general.set({
-        name: loaded.name,
-        description: loaded.description,
-        isActive: loaded.isActive,
-        categoryIds: loaded.categories.map((c) => c.id),
-      });
-      this.variants.set(
-        loaded.productVariants.map((v) => ({
-          id: v.id,
-          sku: v.sku,
-          price: v.price.amount,
-          stockQuantity: v.stockQuantity,
-          size: v.size,
-          color: v.color,
-        })),
-      );
-      this.images.set(loaded.images.map((image) => ({ ...image })));
+    if (stateProduct?.id === id) {
+      this.applyProduct(stateProduct);
       this.loading.set(false);
-    }, 400);
+      return;
+    }
+
+    this.managedProductService
+      .getManagedProductById(id)
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe((loaded) => {
+        if (!loaded) {
+          this.error.set('Produit introuvable.');
+          return;
+        }
+        this.applyProduct(loaded);
+      });
   }
 
   onTabChange(value: string | number | undefined): void {
@@ -122,30 +126,39 @@ export class ProductEditPage implements OnInit {
   }
 
   onImagesReorder(positions: UpdateImagePositionRequest[]): void {
-    this.images.update((items) => {
-      const ordered = [...items].sort((a, b) => {
-        const posA = positions.find((p) => p.imageId === a.id)?.position ?? a.position;
-        const posB = positions.find((p) => p.imageId === b.id)?.position ?? b.position;
-        return posA - posB;
+    const productId = this.product()?.id;
+    if (!productId || this.saving()) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.managedProductService
+      .updateImagePositions(productId, { imagesPosition: positions })
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe((result) => {
+        if (result) {
+          this.applyProduct(result);
+          this.notifications.success('Ordre des images mis à jour.');
+        }
       });
-      return ordered.map((image, index) => ({ ...image, position: index }));
-    });
-    this.notifications.info('Ordre des images mis à jour (mock).');
   }
 
   onUploadImages(files: File[]): void {
-    const start = this.images().length;
-    this.images.update((items) => [
-      ...items,
-      ...files.map((file, index) => ({
-        id: Date.now() + index,
-        url: URL.createObjectURL(file),
-        name: file.name,
-        position: start + index,
-        isPrimary: items.length === 0 && index === 0,
-        file,
-      })),
-    ]);
+    const productId = this.product()?.id;
+    if (!productId || this.saving()) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.managedProductService
+      .addImages(productId, files)
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe((result) => {
+        if (result) {
+          this.applyProduct(result);
+          this.notifications.success('Images ajoutées.');
+        }
+      });
   }
 
   onDeleteVariants(variantIds: number[]): void {
@@ -165,13 +178,39 @@ export class ProductEditPage implements OnInit {
   }
 
   onSetPrimary(imageId: number): void {
-    this.images.update((items) =>
-      items.map((image) => ({ ...image, isPrimary: image.id === imageId })),
-    );
+    const productId = this.product()?.id;
+    if (!productId || this.saving()) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.managedProductService
+      .setPrimaryImage(productId, imageId)
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe((result) => {
+        if (result) {
+          this.applyProduct(result);
+          this.notifications.success('Image principale mise à jour.');
+        }
+      });
   }
 
   onDeleteImages(imageIds: number[]): void {
-    this.images.update((items) => items.filter((image) => !imageIds.includes(image.id)));
+    const productId = this.product()?.id;
+    if (!productId || this.saving()) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.managedProductService
+      .deleteImages(productId, imageIds)
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe((result) => {
+        if (result) {
+          this.applyProduct(result);
+          this.notifications.success('Images supprimées.');
+        }
+      });
   }
 
   saveVariants(): void {
@@ -181,24 +220,91 @@ export class ProductEditPage implements OnInit {
       return;
     }
 
-    this.saving.set(true);
-    console.log('variants (mock)', this.variants());
+    const productId = this.product()?.id;
+    if (!productId) {
+      return;
+    }
 
-    setTimeout(() => {
-      this.saving.set(false);
-      this.showVariantsValidation.set(false);
-      this.notifications.success('Variantes enregistrées (mock).');
-    }, 400);
+    const operations: Observable<ProductResponse | null>[] = [];
+    const newVariants = this.variants()
+      .filter((variant) => !variant.id)
+      .map((variant) => toVariantRequest(variant));
+
+    if (newVariants.length > 0) {
+      operations.push(this.managedProductService.addVariants(productId, newVariants));
+    }
+
+    for (const variant of this.variants()) {
+      if (!variant.id) {
+        continue;
+      }
+      const original = this.originalVariants().find((item) => item.id === variant.id);
+      if (original && variantChanged(original, variant)) {
+        operations.push(
+          this.managedProductService.updateVariant(
+            productId,
+            variant.id,
+            toVariantRequest(variant),
+          ),
+        );
+      }
+    }
+
+    if (operations.length === 0) {
+      this.notifications.info('Aucune modification à enregistrer.');
+      return;
+    }
+
+    this.saving.set(true);
+    from(operations)
+      .pipe(
+        concatMap((operation) => operation),
+        last(),
+        finalize(() => this.saving.set(false)),
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.applyProduct(result);
+          this.showVariantsValidation.set(false);
+          this.notifications.success('Variantes enregistrées.');
+        }
+      });
   }
 
   activate(): void {
-    this.general.update((g) => ({ ...g, isActive: true }));
-    this.product.update((p) => (p ? { ...p, isActive: true } : p));
+    const productId = this.product()?.id;
+    if (!productId || this.saving()) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.managedProductService
+      .activateProduct(productId)
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe((result) => {
+        if (result) {
+          this.applyProduct(result);
+          this.notifications.success('Produit activé.');
+        }
+      });
   }
 
   deactivate(): void {
-    this.general.update((g) => ({ ...g, isActive: false }));
-    this.product.update((p) => (p ? { ...p, isActive: false } : p));
+    const productId = this.product()?.id;
+    if (!productId || this.saving()) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.managedProductService
+      .deactivateProduct(productId)
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe((result) => {
+        if (result) {
+          this.applyProduct(result);
+          this.notifications.info('Produit désactivé.');
+        }
+      });
   }
 
   requestDeleteProduct(): void {
@@ -219,38 +325,64 @@ export class ProductEditPage implements OnInit {
       return;
     }
 
-    this.saving.set(true);
-    console.log('UpdateProductRequest (mock)', this.general());
+    const productId = this.product()?.id;
+    if (!productId) {
+      return;
+    }
 
-    setTimeout(() => {
-      const g = this.general();
-      this.product.update((current) =>
-        current
-          ? {
-              ...current,
-              name: g.name,
-              description: g.description,
-              isActive: g.isActive,
-              categories: this.categories().filter((c) => g.categoryIds.includes(c.id)),
-            }
-          : current,
-      );
-      this.saving.set(false);
-      this.showGeneralValidation.set(false);
-      this.notifications.success('Produit enregistré (mock).');
-    }, 400);
+    const general = this.general();
+    this.saving.set(true);
+    this.managedProductService
+      .updateProduct(productId, {
+        name: general.name.trim(),
+        description: general.description.trim(),
+        isActive: general.isActive,
+        categoryIds: general.categoryIds,
+      })
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe((result) => {
+        if (result) {
+          this.applyProduct(result);
+          this.showGeneralValidation.set(false);
+          this.notifications.success('Produit enregistré.');
+        }
+      });
   }
 
   confirmActionHandler(): void {
     if (this.confirmAction() === 'delete-product') {
-      this.notifications.success('Produit supprimé (mock).');
-      this.router.navigate(['/manage/products']);
+      const productId = this.product()?.id;
+      if (productId) {
+        this.saving.set(true);
+        this.managedProductService
+          .deleteProduct(productId)
+          .pipe(finalize(() => this.saving.set(false)))
+          .subscribe((success) => {
+            if (success) {
+              this.notifications.success('Produit supprimé.');
+              this.router.navigate(['/manage/products']);
+            }
+          });
+      }
     }
+
     if (this.confirmAction() === 'delete-variants') {
-      const ids = this.pendingVariantIds();
-      this.variants.update((items) => items.filter((v) => !v.id || !ids.includes(v.id)));
-      this.notifications.success('Variante supprimée (mock).');
+      const productId = this.product()?.id;
+      const variantIds = this.pendingVariantIds();
+      if (productId && variantIds.length > 0) {
+        this.saving.set(true);
+        this.managedProductService
+          .deleteVariants(productId, variantIds)
+          .pipe(finalize(() => this.saving.set(false)))
+          .subscribe((result) => {
+            if (result) {
+              this.applyProduct(result);
+              this.notifications.success('Variante supprimée.');
+            }
+          });
+      }
     }
+
     this.confirmAction.set(null);
     this.pendingVariantIds.set([]);
     this.confirmVisible.set(false);
@@ -259,4 +391,50 @@ export class ProductEditPage implements OnInit {
   back(): void {
     this.router.navigate(['/manage/products']);
   }
+
+  private applyProduct(product: ProductResponse): void {
+    this.product.set(product);
+    this.general.set({
+      name: product.name,
+      description: product.description,
+      isActive: product.isActive,
+      categoryIds: product.categories.map((category) => category.id),
+    });
+
+    const rows = product.productVariants.map(toVariantRow);
+    this.variants.set(rows);
+    this.originalVariants.set(rows.map((row) => ({ ...row })));
+    this.images.set(product.images.map((image) => ({ ...image })));
+  }
+}
+
+function toVariantRow(variant: ProductVariantResponse): VariantRow {
+  return {
+    id: variant.id,
+    sku: variant.sku,
+    price: variant.price.amount,
+    stockQuantity: variant.stockQuantity,
+    size: variant.size,
+    color: variant.color,
+  };
+}
+
+function toVariantRequest(variant: VariantRow): ProductVariantRequest {
+  return {
+    sku: variant.sku.trim(),
+    price: variant.price,
+    stockQuantity: variant.stockQuantity,
+    size: variant.size.trim(),
+    color: variant.color,
+  };
+}
+
+function variantChanged(original: VariantRow, current: VariantRow): boolean {
+  return (
+    original.sku !== current.sku ||
+    original.price !== current.price ||
+    original.stockQuantity !== current.stockQuantity ||
+    original.size !== current.size ||
+    original.color !== current.color
+  );
 }
