@@ -80,7 +80,21 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadComponent: () =>
-          import('./features/admin/settings/settings.page').then((m) => m.SettingsPage),
+          import('./features/admin/settings/settings-layout').then((m) => m.SettingsLayout),
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/admin/settings/settings-index.page').then((m) => m.SettingsIndexPage),
+          },
+          {
+            path: 'highlights',
+            loadComponent: () =>
+              import('./features/admin/settings/highlights-settings.page').then(
+                (m) => m.HighlightsSettingsPage,
+              ),
+          },
+        ],
       },
     ],
   },

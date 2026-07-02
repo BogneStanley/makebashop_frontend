@@ -1,0 +1,6 @@
+.settings-nav-link.settings-nav-active {
+  border-color: rgb(251 191 36 / 0.5);
+  background-color: rgb(255 251 235 / 0.8);
+  color: rgb(17 24 39);
+  font-weight: 500;
+}

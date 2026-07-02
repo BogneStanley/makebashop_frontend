@@ -27,37 +27,39 @@
               pInputText
               placeholder="Rechercher un article..."
               class="w-full pl-10 border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"
-              [ngModel]="searchQuery()"
-              (ngModelChange)="searchQuery.set($event)"
+              [ngModel]="filters().q"
+              (ngModelChange)="patchFilters({ q: $event })"
             />
           </div>
         </div>
 
         <!-- Categories Filter -->
-        <div>
-          <h3 class="text-sm font-semibold tracking-wider text-gray-900 uppercase mb-4">
-            Catégories
-          </h3>
-          <div class="flex flex-col gap-3">
-            @for (cat of categories(); track cat) {
-              <div class="flex items-center gap-3">
-                <p-checkbox
-                  [name]="cat"
-                  [value]="cat"
-                  [ngModel]="selectedCategories()"
-                  (ngModelChange)="selectedCategories.set($event)"
-                  [inputId]="cat"
-                ></p-checkbox>
-                <label
-                  [for]="cat"
-                  class="text-sm font-light text-gray-600 cursor-pointer select-none"
-                >
-                  {{ cat }}
-                </label>
-              </div>
-            }
+        @if (categories().length > 0) {
+          <div>
+            <h3 class="text-sm font-semibold tracking-wider text-gray-900 uppercase mb-4">
+              Catégories
+            </h3>
+            <div class="flex flex-col gap-3">
+              @for (cat of categories(); track cat.id) {
+                <div class="flex items-center gap-3">
+                  <p-checkbox
+                    [name]="'cat-' + cat.id"
+                    [value]="cat.id"
+                    [ngModel]="filters().categoryIds"
+                    (ngModelChange)="patchFilters({ categoryIds: $event })"
+                    [inputId]="'cat-' + cat.id"
+                  ></p-checkbox>
+                  <label
+                    [for]="'cat-' + cat.id"
+                    class="text-sm font-light text-gray-600 cursor-pointer select-none"
+                  >
+                    {{ cat.name }}
+                  </label>
+                </div>
+              }
+            </div>
           </div>
-        </div>
+        }
 
         <!-- Price Range Filter -->
         <div>
@@ -70,11 +72,11 @@
           <div class="px-2">
             <p-slider
               [min]="0"
-              [max]="500"
+              [max]="maxPrice"
               [range]="true"
               [ngModel]="priceRange()"
-              (ngModelChange)="priceRange.set($event)"
-              styleClass="w-full"
+              (ngModelChange)="patchFilters({ minPrice: $event[0], maxPrice: $event[1] })"
+              class="w-full"
             ></p-slider>
           </div>
         </div>
@@ -84,8 +86,8 @@
           <div class="flex items-center gap-3">
             <p-checkbox
               binary="true"
-              [ngModel]="inStockOnly()"
-              (ngModelChange)="inStockOnly.set($event)"
+              [ngModel]="filters().inStock"
+              (ngModelChange)="patchFilters({ inStock: $event })"
               inputId="inStock"
             ></p-checkbox>
             <label
@@ -117,12 +119,14 @@
           class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-4 gap-4"
         >
           <p class="text-sm font-light text-gray-500">
-            @if (filteredProducts().length === 0) {
+            @if (loading()) {
+              Recherche en cours…
+            } @else if (totalCount() === 0) {
               Aucun résultat trouvé
-            } @else if (filteredProducts().length === 1) {
+            } @else if (totalCount() === 1) {
               1 article trouvé
             } @else {
-              {{ filteredProducts().length }} articles trouvés
+              {{ totalCount() }} articles trouvés
             }
           </p>
 
@@ -130,19 +134,23 @@
             <span class="text-sm font-light text-gray-500 whitespace-nowrap">Trier par :</span>
             <p-select
               [options]="sortOptions"
-              [ngModel]="selectedSort()"
-              (ngModelChange)="selectedSort.set($event)"
+              [ngModel]="filters().sort"
+              (ngModelChange)="patchFilters({ sort: $event })"
               optionLabel="label"
+              optionValue="value"
               class="w-full sm:w-48"
               styleClass="w-full text-sm font-light rounded-0"
             ></p-select>
           </div>
         </div>
 
-        <!-- Products Grid -->
-        @if (filteredProducts().length > 0) {
+        @if (loading()) {
+          <div class="flex flex-col items-center justify-center py-20" role="status" aria-busy="true">
+            <p-progressSpinner ariaLabel="Chargement des produits" />
+          </div>
+        } @else if (products().length > 0) {
           <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-            @for (product of filteredProducts(); track product.id) {
+            @for (product of products(); track product.id) {
               <app-product-card [product]="product"></app-product-card>
             }
           </div>

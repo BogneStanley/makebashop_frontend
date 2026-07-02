@@ -30,7 +30,7 @@ interface ProductOption {
 }
 
 @Component({
-  selector: 'app-settings-page',
+  selector: 'app-highlights-settings-page',
   imports: [
     FormsModule,
     ButtonModule,
@@ -39,11 +39,11 @@ interface ProductOption {
     ProgressSpinnerModule,
     TagModule,
   ],
-  templateUrl: './settings.page.html',
-  styleUrl: './settings.page.css',
+  templateUrl: './highlights-settings.page.html',
+  styleUrl: './highlights-settings.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SettingsPage implements OnInit {
+export class HighlightsSettingsPage implements OnInit {
   private highlightService = inject(ProductHighlightService);
   private managedProductService = inject(ManagedProductService);
 

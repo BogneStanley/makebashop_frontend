@@ -1,16 +1,37 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Header } from '../../../shared/header/header';
-import { Footer } from '../../../shared/footer/footer';
-import { ProductCard } from '../../../shared/product-card/product-card';
-import { ProductService, Product } from '../../../core/services/product.service';
-
-import { InputTextModule } from 'primeng/inputtext';
-import { SliderModule } from 'primeng/slider';
-import { CheckboxModule } from 'primeng/checkbox';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SelectModule } from 'primeng/select';
+import { SliderModule } from 'primeng/slider';
+import { CatalogService } from '../../../core/services/catalog.service';
+import { CategoryService } from '../../../core/services/category.service';
+import { Product } from '../../../core/services/product.service';
+import {
+  CATALOG_DEFAULT_MAX_PRICE,
+  CATALOG_DEFAULT_STATE,
+  CatalogSearchState,
+  parseCatalogSearchParams,
+  sameCatalogSearchState,
+  toCatalogQueryParams,
+} from '../../../core/utils/catalog-search-url';
+import { toShopProduct } from '../../../core/utils/map-product-response';
+import { Footer } from '../../../shared/footer/footer';
+import { Header } from '../../../shared/header/header';
+import { ProductCard } from '../../../shared/product-card/product-card';
 
 interface SortOption {
   label: string;
@@ -30,20 +51,22 @@ interface SortOption {
     CheckboxModule,
     ButtonModule,
     SelectModule,
+    ProgressSpinnerModule,
   ],
   templateUrl: './product-search.html',
   styleUrl: './product-search.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductSearch {
-  private productService = inject(ProductService);
+export class ProductSearch implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
+  private catalogService = inject(CatalogService);
+  private categoryService = inject(CategoryService);
 
-  // Filter States
-  searchQuery = signal<string>('');
-  selectedCategories = signal<string[]>([]);
-  priceRange = signal<number[]>([0, 500]);
-  inStockOnly = signal<boolean>(false);
+  readonly categories = this.categoryService.categoriesList;
+  readonly maxPrice = CATALOG_DEFAULT_MAX_PRICE;
 
-  // Sorting
   sortOptions: SortOption[] = [
     { label: 'Pertinence', value: 'default' },
     { label: 'Prix : croissant', value: 'price-asc' },
@@ -51,63 +74,62 @@ export class ProductSearch {
     { label: 'Nom : A-Z', value: 'name-asc' },
     { label: 'Nom : Z-A', value: 'name-desc' },
   ];
-  selectedSort = signal<SortOption>(this.sortOptions[0]);
 
-  // Categories list
-  categories = computed(() => this.productService.getCategories());
-
-  // Filtered & Sorted products list
-  filteredProducts = computed<Product[]>(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    const cats = this.selectedCategories();
-    const range = this.priceRange();
-    const stockOnly = this.inStockOnly();
-    const sort = this.selectedSort().value;
-
-    let results = this.productService.getProducts()();
-
-    // 1. Search Query
-    if (query) {
-      results = results.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query) ||
-          p.description.toLowerCase().includes(query) ||
-          p.category.toLowerCase().includes(query)
-      );
-    }
-
-    // 2. Categories
-    if (cats.length > 0) {
-      results = results.filter((p) => cats.includes(p.category));
-    }
-
-    // 3. Price Range
-    results = results.filter((p) => p.price >= range[0] && p.price <= range[1]);
-
-    // 4. Stock Availability
-    if (stockOnly) {
-      results = results.filter((p) => p.stock > 0);
-    }
-
-    // 5. Sorting
-    if (sort === 'price-asc') {
-      results = [...results].sort((a, b) => a.price - b.price);
-    } else if (sort === 'price-desc') {
-      results = [...results].sort((a, b) => b.price - a.price);
-    } else if (sort === 'name-asc') {
-      results = [...results].sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sort === 'name-desc') {
-      results = [...results].sort((a, b) => b.name.localeCompare(a.name));
-    }
-
-    return results;
+  filters = signal<CatalogSearchState>(CATALOG_DEFAULT_STATE);
+  priceRange = computed(() => {
+    const { minPrice, maxPrice } = this.filters();
+    return [minPrice, maxPrice];
   });
+  products = signal<Product[]>([]);
+  totalCount = signal(0);
+  loading = signal(false);
+
+  ngOnInit(): void {
+    this.categoryService.loadCategories().subscribe();
+
+    this.catalogService.searchResults$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        this.loading.set(false);
+
+        if (!result) {
+          this.products.set([]);
+          this.totalCount.set(0);
+          return;
+        }
+
+        this.products.set(result.content.map(toShopProduct));
+        this.totalCount.set(result.totalElements);
+      });
+
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const state = parseCatalogSearchParams(params);
+
+      if (!sameCatalogSearchState(state, this.filters())) {
+        this.filters.set(state);
+      }
+
+      this.loading.set(true);
+      this.catalogService.search(state);
+    });
+  }
+
+  patchFilters(partial: Partial<CatalogSearchState>): void {
+    const next = { ...this.filters(), ...partial };
+
+    if (sameCatalogSearchState(next, this.filters())) {
+      return;
+    }
+
+    this.filters.set(next);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: toCatalogQueryParams(next),
+      replaceUrl: true,
+    });
+  }
 
   resetFilters(): void {
-    this.searchQuery.set('');
-    this.selectedCategories.set([]);
-    this.priceRange.set([0, 500]);
-    this.inStockOnly.set(false);
-    this.selectedSort.set(this.sortOptions[0]);
+    this.router.navigate([], { relativeTo: this.route, queryParams: {} });
   }
 }

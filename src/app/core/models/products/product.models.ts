@@ -4,7 +4,7 @@ import {
   ProductResponse,
 } from './product-response.models';
 
-export interface ManagedProductFilters extends PaginationParams {
+export interface ProductSearchFilters extends PaginationParams {
   name?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -12,6 +12,9 @@ export interface ManagedProductFilters extends PaginationParams {
   isActive?: boolean;
   categoryIds?: number[];
 }
+
+export type ManagedProductFilters = ProductSearchFilters;
+export type CatalogProductFilters = Omit<ProductSearchFilters, 'isActive'>;
 
 export interface ProductListItemView extends ProductResponse {
   totalStock: number;

@@ -1,0 +1,57 @@
+<section>
+  <div class="border-b border-amber-100/50 py-8 md:py-10">
+    <div class="mx-auto max-w-7xl px-4 md:px-6">
+      <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-amber-600">
+        Administration
+      </span>
+      <h1 class="text-3xl font-thin tracking-wide text-gray-900 md:text-4xl">Paramètres</h1>
+      <div class="mt-3 h-0.5 w-16 bg-amber-600"></div>
+      <p class="mt-4 max-w-2xl text-sm font-light leading-relaxed text-gray-500">
+        Configurez la boutique par thème. Chaque section dispose de sa propre page.
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
+    <div class="flex flex-col gap-8 lg:flex-row">
+      <nav
+        class="lg:w-56 lg:shrink-0"
+        aria-label="Sections des paramètres"
+      >
+        <ul class="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
+          <li class="shrink-0 lg:shrink">
+            <a
+              routerLink="/manage/settings"
+              routerLinkActive="settings-nav-active"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="settings-nav-link block whitespace-nowrap border border-gray-100 bg-white px-4 py-3 text-sm font-light text-gray-600 transition-colors hover:border-amber-200 hover:bg-amber-50/50 lg:whitespace-normal"
+            >
+              <span class="flex items-center gap-2">
+                <i class="pi pi-th-large text-xs text-amber-600"></i>
+                Vue d’ensemble
+              </span>
+            </a>
+          </li>
+          @for (item of navItems; track item.route) {
+            <li class="shrink-0 lg:shrink">
+              <a
+                [routerLink]="['/manage/settings', item.route]"
+                routerLinkActive="settings-nav-active"
+                class="settings-nav-link block whitespace-nowrap border border-gray-100 bg-white px-4 py-3 text-sm font-light text-gray-600 transition-colors hover:border-amber-200 hover:bg-amber-50/50 lg:whitespace-normal"
+              >
+                <span class="flex items-center gap-2">
+                  <i [class]="item.icon + ' text-xs text-amber-600'"></i>
+                  {{ item.label }}
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      </nav>
+
+      <div class="min-w-0 flex-1">
+        <router-outlet />
+      </div>
+    </div>
+  </div>
+</section>

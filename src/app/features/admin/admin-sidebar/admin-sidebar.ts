@@ -8,6 +8,7 @@ export interface AdminNavItem {
   label: string;
   icon: string;
   route: string;
+  exact?: boolean;
 }
 
 @Component({
@@ -32,7 +33,7 @@ export class AdminSidebar {
     { label: 'Catégories', icon: 'pi pi-tags', route: '/manage/categories' },
     { label: 'Produits', icon: 'pi pi-box', route: '/manage/products' },
     { label: 'Commandes', icon: 'pi pi-shopping-bag', route: '/manage/orders' },
-    { label: 'Paramètres', icon: 'pi pi-cog', route: '/manage/settings' },
+    { label: 'Paramètres', icon: 'pi pi-cog', route: '/manage/settings', exact: false },
   ];
 
   onNavClick(): void {
