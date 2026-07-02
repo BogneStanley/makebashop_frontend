@@ -100,6 +100,27 @@ const MyPreset = definePreset(Aura, {
         height: '1.375rem',
       },
     },
+    progressspinner: {
+      colorScheme: {
+        light: {
+          root: {
+            colorOne: '{primary.600}',
+            colorTwo: '{primary.500}',
+            colorThree: '{primary.400}',
+            colorFour: '{primary.300}',
+          },
+        },
+      },
+      css: `
+        .p-progressspinner {
+          width: 2rem;
+          height: 2rem;
+        }
+        .p-progressspinner-circle {
+          stroke-width: 3;
+        }
+      `,
+    },
   },
 });
 
