@@ -2,77 +2,108 @@
 
 <app-hero></app-hero>
 
-<!-- Nouveautés Section -->
-<section class="py-24 px-6 bg-[#faf6f0]">
-  <div class="max-w-7xl mx-auto">
-    <div class="flex items-end justify-between mb-14">
-      <div>
-        <span class="text-xs tracking-[0.3em] uppercase text-amber-600 font-semibold mb-2 block"
-          >Collection</span
-        >
-        <h2 class="text-4xl font-thin text-gray-900 tracking-wide">Nouveautés</h2>
-        <div class="w-12 h-0.5 bg-amber-600 mt-4"></div>
+@if (loading()) {
+  <section class="bg-[#faf6f0] px-6 py-24">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-center gap-4 py-8" role="status" aria-busy="true">
+      <p-progressSpinner ariaLabel="Chargement des produits" />
+      <p class="text-sm font-light text-gray-500">Chargement de la sélection…</p>
+    </div>
+  </section>
+} @else {
+  @if (featured().length > 0) {
+    <section class="bg-[#f5ede0] px-6 py-24">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-14 flex items-end justify-between">
+          <div>
+            <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-amber-600">
+              Sélection
+            </span>
+            <h2 class="text-4xl font-thin tracking-wide text-gray-900">À la une</h2>
+            <div class="mt-4 h-0.5 w-12 bg-amber-600"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          @for (product of featured(); track product.id) {
+            <app-product-card [product]="product"></app-product-card>
+          }
+        </div>
       </div>
-      <a
-        routerLink="/products"
-        class="hidden md:inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-amber-600 transition-colors group"
-      >
-        Voir tout
-        <i class="pi pi-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
-      </a>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      @for (product of nouveautes(); track product.id) {
-        <app-product-card [product]="product"></app-product-card>
-      }
-    </div>
-    <div class="mt-10 text-center md:hidden">
-      <a
-        routerLink="/products"
-        class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-amber-600 transition-colors border-b border-gray-300 pb-1"
-      >
-        Voir toutes les nouveautés
-        <i class="pi pi-arrow-right text-xs"></i>
-      </a>
-    </div>
-  </div>
-</section>
+    </section>
+  }
 
-<!-- Best Sellers Section -->
-<section class="py-24 px-6 bg-[#faf6f0]">
-  <div class="max-w-7xl mx-auto">
-    <div class="flex items-end justify-between mb-14">
-      <div>
-        <span class="text-xs tracking-[0.3em] uppercase text-amber-600 font-semibold mb-2 block"
-          >Favoris</span
-        >
-        <h2 class="text-4xl font-thin text-gray-900 tracking-wide">Les plus vendus</h2>
-        <div class="w-12 h-0.5 bg-amber-600 mt-4"></div>
+  @if (news().length > 0) {
+    <section class="bg-[#faf6f0] px-6 py-24">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-14 flex items-end justify-between">
+          <div>
+            <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-amber-600">
+              Collection
+            </span>
+            <h2 class="text-4xl font-thin tracking-wide text-gray-900">Nouveautés</h2>
+            <div class="mt-4 h-0.5 w-12 bg-amber-600"></div>
+          </div>
+          <a
+            routerLink="/products"
+            class="group hidden items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-amber-600 md:inline-flex"
+          >
+            Voir tout
+            <i class="pi pi-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+          </a>
+        </div>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          @for (product of news(); track product.id) {
+            <app-product-card [product]="product"></app-product-card>
+          }
+        </div>
+        <div class="mt-10 text-center md:hidden">
+          <a
+            routerLink="/products"
+            class="inline-flex items-center gap-2 border-b border-gray-300 pb-1 text-sm font-medium text-gray-700 transition-colors hover:text-amber-600"
+          >
+            Voir toutes les nouveautés
+            <i class="pi pi-arrow-right text-xs"></i>
+          </a>
+        </div>
       </div>
-      <a
-        routerLink="/products"
-        class="hidden md:inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-amber-600 transition-colors group"
-      >
-        Voir tout
-        <i class="pi pi-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
-      </a>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      @for (product of bestSellers(); track product.id) {
-        <app-product-card [product]="product"></app-product-card>
-      }
-    </div>
-  </div>
-</section>
+    </section>
+  }
 
-<!-- Join Whatsapp group CTA -->
-<section class="py-20 px-6 bg-[#f5ede0] border-t border-amber-100/60">
-  <div class="max-w-2xl mx-auto text-center">
-    <span class="text-xs tracking-[0.3em] uppercase text-amber-600 font-semibold mb-3 block"
-      >Groupe WhatsApp</span
-    >
-    <h2 class="text-3xl font-thin text-gray-900 tracking-wide mb-3">Restez dans la tendance</h2>
-    <p class="text-sm font-light text-gray-500 mb-8 leading-relaxed">
+  @if (bestSellers().length > 0) {
+    <section class="bg-[#faf6f0] px-6 py-24">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-14 flex items-end justify-between">
+          <div>
+            <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.3em] text-amber-600">
+              Favoris
+            </span>
+            <h2 class="text-4xl font-thin tracking-wide text-gray-900">Les plus vendus</h2>
+            <div class="mt-4 h-0.5 w-12 bg-amber-600"></div>
+          </div>
+          <a
+            routerLink="/products"
+            class="group hidden items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-amber-600 md:inline-flex"
+          >
+            Voir tout
+            <i class="pi pi-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+          </a>
+        </div>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          @for (product of bestSellers(); track product.id) {
+            <app-product-card [product]="product"></app-product-card>
+          }
+        </div>
+      </div>
+    </section>
+  }
+}
+
+<section class="border-t border-amber-100/60 bg-[#f5ede0] px-6 py-20">
+  <div class="mx-auto max-w-2xl text-center">
+    <span class="mb-3 block text-xs font-semibold uppercase tracking-[0.3em] text-amber-600">
+      Groupe WhatsApp
+    </span>
+    <h2 class="mb-3 text-3xl font-thin tracking-wide text-gray-900">Restez dans la tendance</h2>
+    <p class="mb-8 text-sm font-light leading-relaxed text-gray-500">
       Rejoignez notre groupe WhatsApp pour recevoir en avant-première nos nouvelles collections et
       offres exclusives.
     </p>

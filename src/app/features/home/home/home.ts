@@ -1,32 +1,53 @@
-import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Header } from '../../../shared/header/header';
-import { Footer } from '../../../shared/footer/footer';
-import { Hero } from '../hero/hero';
-import { ProductCard } from '../../../shared/product-card/product-card';
-import { ProductService, Product } from '../../../core/services/product.service';
-
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { RouterModule } from '@angular/router';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { finalize } from 'rxjs';
+import { Product } from '../../../core/services/product.service';
+import { CatalogService } from '../../../core/services/catalog.service';
+import { toShopProduct } from '../../../core/utils/map-product-response';
+import { ProductCard } from '../../../shared/product-card/product-card';
+import { Footer } from '../../../shared/footer/footer';
+import { Header } from '../../../shared/header/header';
+import { Hero } from '../hero/hero';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, Header, Footer, Hero, ProductCard, ButtonModule, InputTextModule, RouterModule],
+  imports: [
+    Header,
+    Footer,
+    Hero,
+    ProductCard,
+    ButtonModule,
+    InputTextModule,
+    RouterModule,
+    ProgressSpinnerModule,
+  ],
   templateUrl: './home.html',
   styleUrl: './home.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Home {
-  private productService = inject(ProductService);
+export class Home implements OnInit {
+  private catalogService = inject(CatalogService);
 
-  nouveautes = signal<Product[]>([]);
+  loading = signal(true);
+  featured = signal<Product[]>([]);
+  news = signal<Product[]>([]);
   bestSellers = signal<Product[]>([]);
 
-  constructor() {
-    const allProducts = this.productService.getProducts()();
-    // Nouveautés: products with id 1, 2, 3, 4
-    this.nouveautes.set(allProducts.filter((p) => [1, 2, 3, 4].includes(p.id)));
-    // Best sellers: products with id 5, 6, 7, 8
-    this.bestSellers.set(allProducts.filter((p) => [5, 6, 7, 8].includes(p.id)));
+  ngOnInit(): void {
+    this.catalogService
+      .getHighlights()
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe((highlights) => {
+        if (!highlights) {
+          return;
+        }
+
+        this.featured.set(highlights.featuredProducts.map(toShopProduct));
+        this.news.set(highlights.newProducts.map(toShopProduct));
+        this.bestSellers.set(highlights.popularProducts.map(toShopProduct));
+      });
   }
 }
