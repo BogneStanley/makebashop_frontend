@@ -19,6 +19,9 @@
     <div class="absolute bottom-0 left-0 right-0 p-4 text-white transition-all duration-300">
       <h3 class="font-semibold text-lg mb-1 line-clamp-1">{{ name }}</h3>
       <p class="font-bold text-xl text-amber-400">
+        @if (product().hasVariablePrice) {
+          <span class="text-sm font-light text-white/80">À partir de </span>
+        }
         {{ price | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
       </p>
     </div>

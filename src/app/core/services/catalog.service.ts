@@ -54,6 +54,13 @@ export class CatalogService {
     );
   }
 
+  getProductById(id: number): Observable<ProductResponse | null> {
+    return this.http.get<ResponseWrapper<ProductResponse>>(`${this.baseUrl}/${id}`).pipe(
+      map((response) => response.data),
+      catchError(() => of(null)),
+    );
+  }
+
   search(state: CatalogSearchState): void {
     if (!this.isBrowser()) {
       return;

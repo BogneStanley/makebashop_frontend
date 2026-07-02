@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { ShopProductVariant } from '../models/products/shop-product.models';
 
 export interface Product {
   id: number;
@@ -10,7 +11,9 @@ export interface Product {
   category: string;
   stock: number;
   sizes?: string[];
-  colors?: string[]; // hex values or names
+  colors?: string[];
+  variants?: ShopProductVariant[];
+  hasVariablePrice?: boolean;
 }
 
 @Injectable({

@@ -1,7 +1,11 @@
 <app-header></app-header>
 
 <main class="min-h-screen">
-  @if (product(); as prod) {
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center py-24" role="status" aria-busy="true">
+      <p-progressSpinner ariaLabel="Chargement du produit" />
+    </div>
+  } @else if (product(); as prod) {
     <!-- Breadcrumbs -->
     <div class="border-b border-amber-100/40 py-4 text-xs md:text-sm font-light text-gray-500">
       <div class="max-w-7xl mx-auto px-6 flex items-center gap-2">
@@ -27,7 +31,7 @@
               [alt]="prod.name"
               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
-            @if (prod.stock === 0) {
+            @if (variantStock() === 0) {
               <span
                 class="absolute top-4 left-4 bg-black text-white text-xs uppercase tracking-widest px-3 py-1 font-semibold"
               >
@@ -64,7 +68,7 @@
               {{ prod.name }}
             </h1>
             <p class="text-2xl font-bold text-gray-900">
-              {{ prod.price | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
+              {{ displayPrice() | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
             </p>
           </div>
 
@@ -109,7 +113,7 @@
             }
 
             <!-- Sizes Selection -->
-            @if (prod.sizes && prod.sizes.length > 0) {
+            @if (availableSizes().length > 0) {
               <div>
                 <div class="flex justify-between items-center mb-3">
                   <span class="text-xs font-semibold tracking-wider uppercase text-gray-900">
@@ -123,7 +127,7 @@
                   </button>
                 </div>
                 <div class="flex flex-wrap gap-2">
-                  @for (size of prod.sizes; track size) {
+                  @for (size of availableSizes(); track size) {
                     <button
                       type="button"
                       class="px-4 py-2 border text-sm font-light tracking-wide transition-all duration-200 focus:outline-none min-w-[50px] cursor-pointer"
@@ -155,8 +159,8 @@
                 buttonLayout="horizontal"
                 spinnerMode="horizontal"
                 [min]="1"
-                [max]="prod.stock || 1"
-                [disabled]="prod.stock === 0"
+                [max]="variantStock() || 1"
+                [disabled]="variantStock() === 0"
                 decrementButtonClass="p-button-secondary border-gray-200 rounded-0"
                 incrementButtonClass="p-button-secondary border-gray-200 rounded-0"
                 incrementButtonIcon="pi pi-plus text-xs"
@@ -172,14 +176,14 @@
             <button
               pButton
               type="button"
-              [label]="prod.stock > 0 ? 'Ajouter au Panier' : 'Rupture de Stock'"
+              [label]="variantStock() > 0 ? 'Ajouter au Panier' : 'Rupture de Stock'"
               icon="pi pi-shopping-cart"
-              [disabled]="prod.stock === 0"
+              [disabled]="variantStock() === 0"
               class="w-full py-4 text-sm uppercase tracking-wider font-semibold rounded-0"
-              [class.bg-amber-600]="prod.stock > 0"
-              [class.border-amber-600]="prod.stock > 0"
-              [class.bg-gray-300]="prod.stock === 0"
-              [class.border-gray-300]="prod.stock === 0"
+              [class.bg-amber-600]="variantStock() > 0"
+              [class.border-amber-600]="variantStock() > 0"
+              [class.bg-gray-300]="variantStock() === 0"
+              [class.border-gray-300]="variantStock() === 0"
               [class.text-white]="true"
               (click)="addToCart()"
             ></button>
@@ -237,7 +241,7 @@
         </div>
       </div>
     </div>
-  } @else {
+  } @else if (!loading()) {
     <!-- Empty State / Not Found -->
     <div class="max-w-7xl mx-auto px-6 py-24 text-center">
       <i class="pi pi-exclamation-circle text-5xl text-gray-300 mb-4"></i>
