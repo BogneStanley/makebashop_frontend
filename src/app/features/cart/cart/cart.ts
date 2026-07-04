@@ -1,17 +1,24 @@
 import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { CurrencyPipe } from '@angular/common';
 import { Header } from '../../../shared/header/header';
 import { Footer } from '../../../shared/footer/footer';
 import { CartService } from '../../../core/services/cart.service';
+import { CartItemQuantity } from '../../../shared/cart-item-quantity/cart-item-quantity';
 import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-cart',
-  imports: [CommonModule, FormsModule, CurrencyPipe, Header, Footer, ButtonModule, InputNumberModule, RouterModule],
+  imports: [
+    CommonModule,
+    CurrencyPipe,
+    Header,
+    Footer,
+    ButtonModule,
+    RouterModule,
+    CartItemQuantity,
+  ],
   templateUrl: './cart.html',
   styleUrl: './cart.css',
 })
@@ -21,20 +28,18 @@ export class Cart {
   cartItems = this.cartService.getCartItems();
   cartTotal = computed(() => this.cartService.getCartTotal());
   cartCount = computed(() => this.cartService.getCartCount());
+  loading = this.cartService.isLoading();
 
-  onQuantityChange(itemId: string, event: { value: number | undefined }): void {
-    this.cartService.updateQuantity(itemId, event.value || 1);
-  }
-
-  removeItem(itemId: string): void {
-    this.cartService.removeFromCart(itemId);
+  removeItem(variantId: number): void {
+    this.cartService.removeFromCart(variantId).subscribe();
   }
 
   clearCart(): void {
-    this.cartService.clearCart();
+    this.cartService.clearCart().subscribe();
   }
 
   continueShopping(): void {
+    this.cartService.flushAllDraftQuantities();
     window.history.back();
   }
 }

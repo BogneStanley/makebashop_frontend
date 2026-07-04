@@ -2,6 +2,8 @@ import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalE
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { cartInterceptor } from './core/interceptors/cart.interceptor';
+import { CartService } from './core/services/cart.service';
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { providePrimeNG } from 'primeng/config';
@@ -10,6 +12,7 @@ import localeFr from '@angular/common/locales/fr';
 import { registerLocaleData } from '@angular/common';
 import { definePreset } from '@primeuix/themes';
 import { MessageService } from 'primeng/api';
+import { switchMap } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
 
 registerLocaleData(localeFr);
@@ -127,8 +130,12 @@ const MyPreset = definePreset(Aura, {
 export const appConfig: ApplicationConfig = {
   providers: [
     MessageService,
-    provideAppInitializer(() => inject(AuthService).ensureSession()),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideAppInitializer(() => {
+      const authService = inject(AuthService);
+      const cartService = inject(CartService);
+      return authService.ensureSession().pipe(switchMap(() => cartService.loadCart()));
+    }),
+    provideHttpClient(withInterceptors([authInterceptor, cartInterceptor])),
     provideBrowserGlobalErrorListeners(),
     providePrimeNG({
       theme: {

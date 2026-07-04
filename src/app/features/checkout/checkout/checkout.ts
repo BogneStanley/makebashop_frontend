@@ -89,7 +89,7 @@ export class Checkout implements OnInit {
         this.cartItems(),
       );
 
-      this.cartService.clearCart();
+      this.cartService.clearCart().subscribe();
       window.location.href = response.whatsappUrl;
     } catch {
       this.submitError.set('Impossible de créer la commande. Veuillez réessayer.');

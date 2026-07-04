@@ -41,7 +41,7 @@
               <div class="col-span-2 text-right">Total</div>
             </div>
 
-            @for (item of cartItems(); track item.id) {
+            @for (item of cartItems(); track item.variantId) {
               <div
                 class="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-6 border-b border-gray-50 items-center"
               >
@@ -75,24 +75,18 @@
                       severity="danger"
                       size="small"
                       class="mt-2 text-xs"
-                      (onClick)="removeItem(item.id)"
+                      (click)="removeItem(item.variantId)"
                     ></button>
                   </div>
                 </div>
 
                 <!-- Quantity -->
                 <div class="md:col-span-2 flex md:justify-center">
-                  <p-inputNumber
-                    [ngModel]="item.quantity"
-                    (ngModelChange)="onQuantityChange(item.id, $event)"
-                    [showButtons]="true"
-                    buttonLayout="horizontal"
-                    spinnerMode="horizontal"
-                    [min]="1"
+                  <app-cart-item-quantity
+                    [variantId]="item.variantId"
+                    [quantity]="item.quantity"
                     [max]="item.product.stock || 1"
-                    size="small"
-                    class="w-24"
-                  ></p-inputNumber>
+                  />
                 </div>
 
                 <!-- Unit Price -->

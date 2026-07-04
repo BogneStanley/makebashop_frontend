@@ -1,10 +1,9 @@
-import { Component, input, output, inject } from '@angular/core';
+import { Component, computed, input, output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CurrencyPipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { CartService, CartItem } from '../../core/services/cart.service';
+import { CartService } from '../../core/services/cart.service';
+import { CartItemQuantity } from '../cart-item-quantity/cart-item-quantity';
 import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { DrawerModule } from 'primeng/drawer';
 import { RouterModule, Router } from '@angular/router';
 
@@ -13,11 +12,10 @@ import { RouterModule, Router } from '@angular/router';
   imports: [
     CommonModule,
     CurrencyPipe,
-    FormsModule,
     ButtonModule,
-    InputNumberModule,
     DrawerModule,
     RouterModule,
+    CartItemQuantity,
   ],
   templateUrl: './cart-sidebar.html',
   styleUrl: './cart-sidebar.css',
@@ -29,33 +27,21 @@ export class CartSidebar {
   private cartService = inject(CartService);
   private router = inject(Router);
 
-  get cartItems() {
-    return this.cartService.getCartItems()();
-  }
+  cartItems = this.cartService.getCartItems();
+  cartTotal = computed(() => this.cartService.getCartTotal());
+  cartCount = computed(() => this.cartService.getCartCount());
 
-  get cartTotal() {
-    return this.cartService.getCartTotal();
-  }
-
-  get cartCount() {
-    return this.cartService.getCartCount();
-  }
-
-  onQuantityChange(itemId: string, event: { value: number | undefined }) {
-    this.cartService.updateQuantity(itemId, event.value || 1);
-  }
-
-  removeItem(itemId: string): void {
-    this.cartService.removeFromCart(itemId);
+  removeItem(variantId: number): void {
+    this.cartService.removeFromCart(variantId).subscribe();
   }
 
   close(): void {
+    this.cartService.flushAllDraftQuantities();
     this.onClose.emit();
   }
 
   navigateToCart(): void {
     this.close();
-    // Petit délai pour laisser le drawer se fermer complètement
     setTimeout(() => {
       this.router.navigate(['/cart']);
     }, 1000);

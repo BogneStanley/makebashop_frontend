@@ -6,6 +6,8 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CartService } from '../../core/services/cart.service';
 import { Product } from '../../core/services/product.service';
+import { getCheapestVariant } from '../../core/models/products/shop-product.models';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-product-card',
@@ -15,6 +17,7 @@ import { Product } from '../../core/services/product.service';
 })
 export class ProductCard {
   private cartService = inject(CartService);
+  private notifications = inject(NotificationService);
 
   product = input.required<Product>();
   isHovered = signal(false);
@@ -44,6 +47,14 @@ export class ProductCard {
   }
 
   addToCart(): void {
-    this.cartService.addToCart(this.product(), 1);
+    const prod = this.product();
+    const variant = getCheapestVariant(prod.variants ?? []);
+
+    if (!variant || variant.stockQuantity === 0) {
+      this.notifications.info('Ce produit n\'est pas disponible.');
+      return;
+    }
+
+    this.cartService.addToCart(prod.id, variant.id, 1).subscribe();
   }
 }

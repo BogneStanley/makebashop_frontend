@@ -150,20 +150,17 @@ export class ProductDetails implements OnInit {
 
   addToCart(): void {
     const prod = this.product();
+    const variant = this.selectedVariant();
+
     if (!prod || this.variantStock() === 0) {
       return;
     }
 
-    this.cartService.addToCart(
-      {
-        ...prod,
-        price: this.displayPrice(),
-        stock: this.variantStock(),
-      },
-      this.quantity(),
-      this.selectedSize(),
-      this.selectedColor(),
-    );
+    if (!variant) {
+      return;
+    }
+
+    this.cartService.addToCart(prod.id, variant.id, this.quantity()).subscribe();
   }
 
   private applyProduct(prod: Product): void {
