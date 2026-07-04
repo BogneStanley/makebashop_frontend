@@ -6,6 +6,7 @@ import { Footer } from '../../../shared/footer/footer';
 import { CartService } from '../../../core/services/cart.service';
 import { CartItemQuantity } from '../../../shared/cart-item-quantity/cart-item-quantity';
 import { ButtonModule } from 'primeng/button';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -16,6 +17,7 @@ import { RouterModule } from '@angular/router';
     Header,
     Footer,
     ButtonModule,
+    ProgressSpinnerModule,
     RouterModule,
     CartItemQuantity,
   ],
@@ -29,8 +31,14 @@ export class Cart {
   cartTotal = computed(() => this.cartService.getCartTotal());
   cartCount = computed(() => this.cartService.getCartCount());
   loading = this.cartService.isLoading();
+  clearing = this.cartService.isClearingCart();
+  variantLoading = this.cartService.getVariantLoading();
 
   removeItem(variantId: number): void {
+    if (this.variantLoading()[variantId]) {
+      return;
+    }
+
     this.cartService.removeFromCart(variantId).subscribe();
   }
 

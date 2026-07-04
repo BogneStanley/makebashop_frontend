@@ -3,6 +3,30 @@
   vertical-align: middle;
 }
 
+.cart-qty-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.cart-qty-wrapper--busy {
+  opacity: 0.7;
+}
+
+.cart-qty-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(255 255 255 / 0.65);
+  pointer-events: none;
+}
+
+.cart-qty-loader ::ng-deep .p-progressspinner {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 .cart-qty-compact {
   display: inline-flex;
   align-items: center;

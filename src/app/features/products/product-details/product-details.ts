@@ -49,6 +49,8 @@ export class ProductDetails implements OnInit {
   private cartService = inject(CartService);
   private destroyRef = inject(DestroyRef);
 
+  addingToCart = this.cartService.isAddingToCart();
+
   product = signal<Product | undefined>(undefined);
   loading = signal(true);
   selectedImage = signal<string>('');

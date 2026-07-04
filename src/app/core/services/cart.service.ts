@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, finalize, map, of, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AddToCartRequest, CartResponse, UpdateCartRequest } from '../models/cart';
 import { ResponseWrapper } from '../models/common/api-wrapper.models';
@@ -26,6 +26,8 @@ export interface CartItem {
   selectedColor?: string;
 }
 
+export type CartVariantAction = 'update' | 'remove';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -40,6 +42,9 @@ export class CartService {
   private cartItems = signal<CartItem[]>([]);
   private totalAmount = signal(0);
   private loading = signal(false);
+  private variantLoading = signal<Record<number, CartVariantAction>>({});
+  private addingToCart = signal(false);
+  private clearingCart = signal(false);
 
   // --- Suivi des modifications de quantité ---
   /** Dernière quantité confirmée par le serveur */
@@ -57,6 +62,22 @@ export class CartService {
 
   isLoading() {
     return this.loading;
+  }
+
+  getVariantLoading() {
+    return this.variantLoading;
+  }
+
+  isAddingToCart() {
+    return this.addingToCart;
+  }
+
+  isClearingCart() {
+    return this.clearingCart;
+  }
+
+  isVariantBusy(variantId: number): boolean {
+    return this.variantLoading()[variantId] !== undefined;
   }
 
   getCartCount(): number {
@@ -123,6 +144,8 @@ export class CartService {
 
     const body: AddToCartRequest = { productId, variantId, quantity };
 
+    this.addingToCart.set(true);
+
     return this.http.post<ResponseWrapper<CartResponse>>(this.baseUrl, body).pipe(
       tap((response) => {
         this.applyCart(response.data);
@@ -133,6 +156,7 @@ export class CartService {
         this.notifications.error(mapHttpError(error));
         return throwError(() => error);
       }),
+      finalize(() => this.addingToCart.set(false)),
     );
   }
 
@@ -144,6 +168,7 @@ export class CartService {
     this.forgetPendingChanges(variantId);
     this.removeItemFromScreen(variantId);
     delete this.savedQuantities[variantId];
+    this.startVariantAction(variantId, 'remove');
 
     return this.http
       .delete<ResponseWrapper<CartResponse>>(`${this.baseUrl}/items/${variantId}`)
@@ -155,6 +180,7 @@ export class CartService {
           this.loadCart().subscribe();
           return throwError(() => error);
         }),
+        finalize(() => this.stopVariantAction(variantId)),
       );
   }
 
@@ -164,6 +190,7 @@ export class CartService {
     }
 
     this.forgetAllPendingChanges();
+    this.clearingCart.set(true);
 
     return this.http.delete<ResponseWrapper<CartResponse>>(this.baseUrl).pipe(
       tap((response) => this.applyCart(response.data)),
@@ -172,6 +199,7 @@ export class CartService {
         this.notifications.error(mapHttpError(error));
         return throwError(() => error);
       }),
+      finalize(() => this.clearingCart.set(false)),
     );
   }
 
@@ -207,7 +235,12 @@ export class CartService {
       variantsQuantity: [{ variantId, quantity }],
     };
 
-    this.http.put<ResponseWrapper<CartResponse>>(this.baseUrl, body).subscribe({
+    this.startVariantAction(variantId, 'update');
+
+    this.http
+      .put<ResponseWrapper<CartResponse>>(this.baseUrl, body)
+      .pipe(finalize(() => this.stopVariantAction(variantId)))
+      .subscribe({
       next: (response) => {
         // Ignorer si l'utilisateur a modifié la quantité entre-temps
         if (this.requestCounter[variantId] !== requestId) {
@@ -321,6 +354,18 @@ export class CartService {
       this.cancelTimer(variantId);
     }
     this.pendingQuantities = {};
+  }
+
+  private startVariantAction(variantId: number, action: CartVariantAction): void {
+    this.variantLoading.update((state) => ({ ...state, [variantId]: action }));
+  }
+
+  private stopVariantAction(variantId: number): void {
+    this.variantLoading.update((state) => {
+      const next = { ...state };
+      delete next[variantId];
+      return next;
+    });
   }
 
   private isBrowser(): boolean {

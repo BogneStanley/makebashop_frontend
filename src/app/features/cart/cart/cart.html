@@ -8,7 +8,12 @@
     </div>
   </div>
 
-  @if (cartItems().length === 0) {
+  @if (loading()) {
+    <div class="max-w-7xl mx-auto px-6 py-20 flex flex-col items-center justify-center text-center">
+      <p-progressSpinner ariaLabel="Chargement du panier" />
+      <p class="text-sm font-light text-gray-500 mt-4">Chargement du panier...</p>
+    </div>
+  } @else if (cartItems().length === 0) {
     <div class="max-w-7xl mx-auto px-6 py-20 text-center">
       <i class="pi pi-shopping-bag text-6xl text-gray-300 mb-6"></i>
       <h2 class="text-2xl font-light text-gray-900 mb-3">Votre panier est vide</h2>
@@ -80,6 +85,8 @@
                             severity="danger"
                             size="small"
                             class="mt-2 text-xs self-start"
+                            [loading]="variantLoading()[item.variantId] === 'remove'"
+                            [disabled]="!!variantLoading()[item.variantId]"
                             (click)="removeItem(item.variantId)"
                           ></button>
                         </div>
@@ -173,6 +180,8 @@
                     severity="danger"
                     size="small"
                     class="text-xs"
+                    [loading]="variantLoading()[item.variantId] === 'remove'"
+                    [disabled]="!!variantLoading()[item.variantId]"
                     (click)="removeItem(item.variantId)"
                   ></button>
                 </div>
@@ -234,6 +243,8 @@
               [text]="true"
               severity="danger"
               class="w-full mt-3 text-xs"
+              [loading]="clearing()"
+              [disabled]="clearing()"
               (click)="clearCart()"
             ></button>
           </div>

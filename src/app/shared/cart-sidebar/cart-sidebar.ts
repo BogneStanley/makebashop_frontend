@@ -5,6 +5,7 @@ import { CartService } from '../../core/services/cart.service';
 import { CartItemQuantity } from '../cart-item-quantity/cart-item-quantity';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { RouterModule, Router } from '@angular/router';
 
 @Component({
@@ -14,6 +15,7 @@ import { RouterModule, Router } from '@angular/router';
     CurrencyPipe,
     ButtonModule,
     DrawerModule,
+    ProgressSpinnerModule,
     RouterModule,
     CartItemQuantity,
   ],
@@ -30,8 +32,14 @@ export class CartSidebar {
   cartItems = this.cartService.getCartItems();
   cartTotal = computed(() => this.cartService.getCartTotal());
   cartCount = computed(() => this.cartService.getCartCount());
+  loading = this.cartService.isLoading();
+  variantLoading = this.cartService.getVariantLoading();
 
   removeItem(variantId: number): void {
+    if (this.variantLoading()[variantId]) {
+      return;
+    }
+
     this.cartService.removeFromCart(variantId).subscribe();
   }
 

@@ -1,37 +1,46 @@
-@if (compact()) {
-  <div class="cart-qty-compact">
-    <button
-      type="button"
-      class="cart-qty-compact-btn"
-      aria-label="Diminuer la quantité"
-      [disabled]="quantity() <= 1"
-      (click)="decrease()"
-    >
-      <i class="pi pi-minus text-xs"></i>
-    </button>
-    <span class="cart-qty-compact-value">{{ quantity() }}</span>
-    <button
-      type="button"
-      class="cart-qty-compact-btn"
-      aria-label="Augmenter la quantité"
-      [disabled]="quantity() >= max()"
-      (click)="increase()"
-    >
-      <i class="pi pi-plus text-xs"></i>
-    </button>
-  </div>
-} @else {
-  <p-inputNumber
-    [ngModel]="quantity()"
-    (ngModelChange)="onQuantityChange($event)"
-    (onBlur)="onBlur()"
-    (onInput)="markKeyboardInput()"
-    [showButtons]="true"
-    buttonLayout="horizontal"
-    spinnerMode="horizontal"
-    [min]="1"
-    [max]="max()"
-    size="small"
-    styleClass="cart-qty-input"
-  />
-}
+<div class="cart-qty-wrapper" [class.cart-qty-wrapper--busy]="busy()">
+  @if (compact()) {
+    <div class="cart-qty-compact">
+      <button
+        type="button"
+        class="cart-qty-compact-btn"
+        aria-label="Diminuer la quantité"
+        [disabled]="busy() || quantity() <= 1"
+        (click)="decrease()"
+      >
+        <i class="pi pi-minus text-xs"></i>
+      </button>
+      <span class="cart-qty-compact-value">{{ quantity() }}</span>
+      <button
+        type="button"
+        class="cart-qty-compact-btn"
+        aria-label="Augmenter la quantité"
+        [disabled]="busy() || quantity() >= max()"
+        (click)="increase()"
+      >
+        <i class="pi pi-plus text-xs"></i>
+      </button>
+    </div>
+  } @else {
+    <p-inputNumber
+      [ngModel]="quantity()"
+      (ngModelChange)="onQuantityChange($event)"
+      (onBlur)="onBlur()"
+      (onInput)="markKeyboardInput()"
+      [showButtons]="true"
+      buttonLayout="horizontal"
+      spinnerMode="horizontal"
+      [min]="1"
+      [max]="max()"
+      [disabled]="busy()"
+      size="small"
+      styleClass="cart-qty-input"
+    />
+  }
+
+  @if (busy()) {
+    <div class="cart-qty-loader" aria-label="Mise à jour en cours">
+      <p-progressSpinner strokeWidth="4" ariaLabel="Mise à jour en cours" />
+    </div>
+  }
+</div>
