@@ -9,14 +9,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
+import { finalize } from 'rxjs';
 import {
   formatMoney,
   formatOrderDate,
 } from '../../../core/models/orders/order.models';
 import { OrderResponse } from '../../../core/models/orders/order-response.models';
-import { getMockOrderById } from '../../../core/models/orders/order.mock';
 import { getPrimaryImage } from '../../../core/models/products/product.models';
 import { NotificationService } from '../../../core/services/notification.service';
+import { OrderService } from '../../../core/services/order.service';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/confirm-dialog/confirm-dialog';
 import { OrderStatusBadge } from '../components/order-status-badge/order-status-badge';
 
@@ -37,6 +38,7 @@ export class OrderDetailPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private notifications = inject(NotificationService);
+  private orderService = inject(OrderService);
 
   order = signal<OrderResponse | null>(null);
   loading = signal(true);
@@ -52,15 +54,22 @@ export class OrderDetailPage implements OnInit {
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    setTimeout(() => {
-      const found = getMockOrderById(id);
-      if (found) {
-        this.order.set({ ...found });
-      } else {
-        this.notFound.set(true);
-      }
+    if (!Number.isFinite(id) || id <= 0) {
+      this.notFound.set(true);
       this.loading.set(false);
-    }, 300);
+      return;
+    }
+
+    this.orderService
+      .getOrderById(id)
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe((found) => {
+        if (found) {
+          this.order.set(found);
+        } else {
+          this.notFound.set(true);
+        }
+      });
   }
 
   goBack(): void {
@@ -71,7 +80,7 @@ export class OrderDetailPage implements OnInit {
     this.pendingAction.set('paid');
     this.confirmData.set({
       title: 'Marquer comme payée',
-      message: `Confirmer le paiement de cette commande ?`,
+      message: 'Confirmer le paiement de cette commande ?',
       confirmLabel: 'Confirmer',
     });
     this.confirmVisible.set(true);
@@ -91,18 +100,30 @@ export class OrderDetailPage implements OnInit {
   confirmAction(): void {
     const action = this.pendingAction();
     const current = this.order();
-    if (action && current) {
-      const newStatus = action === 'paid' ? 'PAID' : 'CANCELLED';
-      const now = new Date().toISOString().slice(0, 19);
-      this.order.set({ ...current, status: newStatus, updatedAt: now });
-      const message =
-        action === 'paid'
-          ? 'Commande marquée comme payée (mock).'
-          : 'Commande annulée (mock).';
-      this.notifications.success(message);
+    if (!action || !current) {
+      this.pendingAction.set(null);
+      this.confirmVisible.set(false);
+      return;
     }
-    this.pendingAction.set(null);
-    this.confirmVisible.set(false);
+
+    const request$ =
+      action === 'paid'
+        ? this.orderService.markAsPaid(current.id)
+        : this.orderService.markAsCancelled(current.id);
+
+    request$.subscribe((success) => {
+      if (success) {
+        const newStatus = action === 'paid' ? 'PAID' : 'CANCELLED';
+        this.order.set({ ...current, status: newStatus });
+        this.notifications.success(
+          action === 'paid'
+            ? 'Commande marquée comme payée.'
+            : 'Commande annulée.',
+        );
+      }
+      this.pendingAction.set(null);
+      this.confirmVisible.set(false);
+    });
   }
 
   customerFullName(order: OrderResponse): string {

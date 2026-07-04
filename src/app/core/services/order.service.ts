@@ -1,158 +1,131 @@
-import { Injectable } from '@angular/core';
-import { CartItem } from './cart.service';
+import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { Observable, catchError, map, of } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { ResponseWrapper } from '../models/common/api-wrapper.models';
+import { Paginated } from '../models/common/pagination.models';
 import {
-  CreateOrderRequest,
+  CheckoutCustomerInfo,
+  CheckoutOrderRequest,
   CreateOrderResponse,
 } from '../models/orders/create-order.models';
 import {
-  OrderItemResponse,
-  OrderResponse,
-} from '../models/orders/order-response.models';
-import { mockOrders } from '../models/orders/order.mock';
+  ManagedOrderFilters,
+  OrderListItemView,
+  toOrderListItemView,
+} from '../models/orders/order.models';
+import { OrderResponse } from '../models/orders/order-response.models';
+import { buildOrderParams, hasOrderSearchFilters } from '../utils/build-order-query';
+import { mapHttpError } from '../utils/map-http-error';
+import { NotificationService } from './notification.service';
 
-const FCFA = 'FCFA';
 const SHOP_WHATSAPP_NUMBER = '221771234567';
-const MOCK_DELAY_MS = 800;
 
 @Injectable({
   providedIn: 'root',
 })
 export class OrderService {
-  createOrder(request: CreateOrderRequest): Promise<CreateOrderResponse> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const order = this.buildMockOrder(request);
-        resolve({
-          order,
-          whatsappUrl: this.buildWhatsappUrl(order),
-        });
-      }, MOCK_DELAY_MS);
-    });
+  private http = inject(HttpClient);
+  private notifications = inject(NotificationService);
+  private platformId = inject(PLATFORM_ID);
+  private readonly baseUrl = `${environment.apiUrl}/orders`;
+
+  listManaged(filters: ManagedOrderFilters): Observable<Paginated<OrderListItemView> | null> {
+    if (!this.isBrowser()) {
+      return of(null);
+    }
+
+    const params = buildOrderParams(filters);
+    const url = hasOrderSearchFilters(filters) ? `${this.baseUrl}/search` : this.baseUrl;
+
+    return this.http.get<ResponseWrapper<Paginated<OrderResponse>>>(url, { params }).pipe(
+      map((response) => this.mapPaginatedOrders(response.data)),
+      catchError((error) => {
+        this.notifications.error(mapHttpError(error));
+        return of(null);
+      }),
+    );
   }
 
-  createOrderFromCart(
-    customerInfo: Omit<CreateOrderRequest, 'items'>,
-    cartItems: CartItem[],
-  ): Promise<CreateOrderResponse> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const order = this.buildMockOrderFromCart(customerInfo, cartItems);
-        resolve({
-          order,
-          whatsappUrl: this.buildWhatsappUrl(order),
-        });
-      }, MOCK_DELAY_MS);
-    });
+  getOrderById(id: number): Observable<OrderResponse | null> {
+    if (!this.isBrowser()) {
+      return of(null);
+    }
+
+    return this.http.get<ResponseWrapper<OrderResponse>>(`${this.baseUrl}/${id}`).pipe(
+      map((response) => response.data),
+      catchError((error) => {
+        this.notifications.error(mapHttpError(error));
+        return of(null);
+      }),
+    );
   }
 
-  private buildMockOrderFromCart(
-    customerInfo: Omit<CreateOrderRequest, 'items'>,
-    cartItems: CartItem[],
-  ): OrderResponse {
-    const nextId = mockOrders.length + 1;
-    const orderNumber = `ORD-2026-${String(nextId).padStart(4, '0')}`;
-    const now = new Date().toISOString();
+  checkoutFromCart(customerInfo: CheckoutCustomerInfo): Observable<CreateOrderResponse | null> {
+    if (!this.isBrowser()) {
+      return of(null);
+    }
 
-    const items: OrderItemResponse[] = cartItems.map((item, index) => {
-      const unitPrice = item.product.price;
-      const subtotal = unitPrice * item.quantity;
-
-      return {
-        id: nextId * 100 + index + 1,
-        product: {
-          id: item.product.id,
-          name: item.product.name,
-          description: item.product.description,
-          isActive: true,
-          categories: [],
-          images: [],
-          productVariants: [],
-        },
-        variant: {
-          id: index + 1,
-          sku: `SKU-${item.product.id}`,
-          price: { amount: unitPrice, currency: FCFA },
-          stockQuantity: item.product.stock,
-          color: item.selectedColor ?? '',
-          size: item.selectedSize ?? '',
-        },
-        quantity: item.quantity,
-        price: { amount: unitPrice, currency: FCFA },
-        subtotal: { amount: subtotal, currency: FCFA },
-      };
-    });
-
-    const totalAmount = items.reduce((sum, item) => sum + item.subtotal.amount, 0);
-
-    return {
-      id: nextId,
-      orderNumber,
-      status: 'PENDING',
-      customerFirstName: customerInfo.customerFirstName,
-      customerLastName: customerInfo.customerLastName,
-      customerEmail: customerInfo.customerEmail?.trim() || '',
-      customerPhoneNumber: customerInfo.customerPhoneNumber,
-      note: customerInfo.note?.trim() || null,
-      totalAmount: { amount: totalAmount, currency: FCFA },
-      createdAt: now,
-      updatedAt: now,
-      items,
+    const body: CheckoutOrderRequest = {
+      firstName: customerInfo.customerFirstName,
+      lastName: customerInfo.customerLastName,
+      phoneNumber: customerInfo.customerPhoneNumber,
     };
+
+    const email = customerInfo.customerEmail?.trim();
+    if (email) {
+      body.email = email;
+    }
+
+    const note = customerInfo.note?.trim();
+    if (note) {
+      body.note = note;
+    }
+
+    return this.http
+      .post<ResponseWrapper<OrderResponse>>(`${this.baseUrl}/checkout`, body)
+      .pipe(
+        map((response) => ({
+          order: response.data,
+          whatsappUrl: this.buildWhatsappUrl(response.data),
+        })),
+        catchError((error) => {
+          this.notifications.error(mapHttpError(error));
+          return of(null);
+        }),
+      );
   }
 
-  private buildMockOrder(request: CreateOrderRequest): OrderResponse {
-    const nextId = mockOrders.length + 1;
-    const orderNumber = `ORD-2026-${String(nextId).padStart(4, '0')}`;
-    const now = new Date().toISOString();
+  markAsPaid(orderId: number): Observable<boolean> {
+    if (!this.isBrowser()) {
+      return of(false);
+    }
 
-    const items: OrderItemResponse[] = request.items.map((item, index) => {
-      const unitPrice = this.getMockUnitPrice(item.productId);
-      const subtotal = unitPrice * item.quantity;
-
-      return {
-        id: nextId * 100 + index + 1,
-        product: {
-          id: item.productId,
-          name: this.getMockProductName(item.productId),
-          description: '',
-          isActive: true,
-          categories: [],
-          images: [],
-          productVariants: [],
-        },
-        variant: {
-          id: index + 1,
-          sku: `SKU-${item.productId}`,
-          price: { amount: unitPrice, currency: FCFA },
-          stockQuantity: 10,
-          color: item.selectedColor ?? '',
-          size: item.selectedSize ?? '',
-        },
-        quantity: item.quantity,
-        price: { amount: unitPrice, currency: FCFA },
-        subtotal: { amount: subtotal, currency: FCFA },
-      };
-    });
-
-    const totalAmount = items.reduce((sum, item) => sum + item.subtotal.amount, 0);
-
-    return {
-      id: nextId,
-      orderNumber,
-      status: 'PENDING',
-      customerFirstName: request.customerFirstName,
-      customerLastName: request.customerLastName,
-      customerEmail: request.customerEmail?.trim() || '',
-      customerPhoneNumber: request.customerPhoneNumber,
-      note: request.note?.trim() || null,
-      totalAmount: { amount: totalAmount, currency: FCFA },
-      createdAt: now,
-      updatedAt: now,
-      items,
-    };
+    return this.http.put<ResponseWrapper<null>>(`${this.baseUrl}/${orderId}/paid`, {}).pipe(
+      map(() => true),
+      catchError((error) => {
+        this.notifications.error(mapHttpError(error));
+        return of(false);
+      }),
+    );
   }
 
-  private buildWhatsappUrl(order: OrderResponse): string {
+  markAsCancelled(orderId: number): Observable<boolean> {
+    if (!this.isBrowser()) {
+      return of(false);
+    }
+
+    return this.http.put<ResponseWrapper<null>>(`${this.baseUrl}/${orderId}/cancel`, {}).pipe(
+      map(() => true),
+      catchError((error) => {
+        this.notifications.error(mapHttpError(error));
+        return of(false);
+      }),
+    );
+  }
+
+  buildWhatsappUrl(order: OrderResponse): string {
     const lines = [
       `Bonjour, je souhaite confirmer ma commande *${order.orderNumber}*.`,
       '',
@@ -169,10 +142,10 @@ export class OrderService {
       '*Articles :*',
       ...order.items.map(
         (item) =>
-          `- ${item.product.name}${item.variant.size ? ` (${item.variant.size})` : ''} x${item.quantity} — ${item.subtotal.amount.toLocaleString('fr-FR')} ${FCFA}`,
+          `- ${item.product.name}${item.variant.size ? ` (${item.variant.size})` : ''} x${item.quantity} — ${item.subtotal.amount.toLocaleString('fr-FR')} ${item.subtotal.currency}`,
       ),
       '',
-      `*Total :* ${order.totalAmount.amount.toLocaleString('fr-FR')} ${FCFA}`,
+      `*Total :* ${order.totalAmount.amount.toLocaleString('fr-FR')} ${order.totalAmount.currency}`,
     );
 
     if (order.note) {
@@ -183,25 +156,16 @@ export class OrderService {
     return `https://wa.me/${SHOP_WHATSAPP_NUMBER}?text=${text}`;
   }
 
-  private getMockProductName(productId: number): string {
-    const names: Record<number, string> = {
-      1: 'Manteau en Cachemire',
-      2: 'Chemise en Lin',
-      3: 'Veste Structurée',
-      4: 'Pantalon Taille Haute',
-      5: 'Robe Élégante',
+  private mapPaginatedOrders(
+    page: Paginated<OrderResponse>,
+  ): Paginated<OrderListItemView> {
+    return {
+      ...page,
+      content: page.content.map(toOrderListItemView),
     };
-    return names[productId] ?? `Produit #${productId}`;
   }
 
-  private getMockUnitPrice(productId: number): number {
-    const prices: Record<number, number> = {
-      1: 295,
-      2: 125,
-      3: 5000,
-      4: 95,
-      5: 180,
-    };
-    return prices[productId] ?? 100;
+  private isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
   }
 }

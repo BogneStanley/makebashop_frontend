@@ -1,19 +1,20 @@
 import { OrderResponse } from './order-response.models';
 
-export interface CreateOrderItemRequest {
-  productId: number;
-  quantity: number;
-  selectedSize?: string;
-  selectedColor?: string;
+/** Corps de POST /orders/checkout */
+export interface CheckoutOrderRequest {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phoneNumber: string;
+  note?: string;
 }
 
-export interface CreateOrderRequest {
+export interface CheckoutCustomerInfo {
   customerFirstName: string;
   customerLastName: string;
   customerEmail?: string;
   customerPhoneNumber: string;
   note?: string;
-  items: CreateOrderItemRequest[];
 }
 
 export interface CreateOrderResponse {

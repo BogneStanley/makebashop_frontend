@@ -2,6 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { finalize } from 'rxjs';
 import { Header } from '../../../shared/header/header';
 import { Footer } from '../../../shared/footer/footer';
 import { CartService } from '../../../core/services/cart.service';
@@ -68,32 +69,40 @@ export class Checkout implements OnInit {
     return this.checkoutForm.controls.customerPhoneNumber;
   }
 
-  async onSubmit(): Promise<void> {
+  onSubmit(): void {
     this.checkoutForm.markAllAsTouched();
 
-    if (this.checkoutForm.invalid || this.cartItems().length === 0) {
+    if (this.checkoutForm.invalid || this.cartItems().length === 0 || this.isSubmitting()) {
       return;
     }
 
     this.isSubmitting.set(true);
     this.submitError.set(null);
+    this.cartService.flushAllDraftQuantities();
 
-    try {
-      const { note, customerEmail, ...customerInfo } = this.checkoutForm.getRawValue();
-      const response = await this.orderService.createOrderFromCart(
-        {
-          ...customerInfo,
-          customerEmail: customerEmail.trim() || undefined,
-          note: note.trim() || undefined,
-        },
-        this.cartItems(),
-      );
+    const { note, customerEmail, ...customerInfo } = this.checkoutForm.getRawValue();
 
-      this.cartService.clearCart().subscribe();
-      window.location.href = response.whatsappUrl;
-    } catch {
-      this.submitError.set('Impossible de créer la commande. Veuillez réessayer.');
-      this.isSubmitting.set(false);
-    }
+    this.orderService
+      .checkoutFromCart({
+        ...customerInfo,
+        customerEmail: customerEmail.trim() || undefined,
+        note: note.trim() || undefined,
+      })
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe((response) => {
+        if (!response) {
+          this.submitError.set('Impossible de créer la commande. Veuillez réessayer.');
+          return;
+        }
+
+        this.cartService.clearCart().subscribe({
+          next: () => {
+            window.location.href = response.whatsappUrl;
+          },
+          error: () => {
+            window.location.href = response.whatsappUrl;
+          },
+        });
+      });
   }
 }
