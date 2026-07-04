@@ -9,7 +9,6 @@
   </div>
 
   @if (cartItems().length === 0) {
-    <!-- Empty Cart State -->
     <div class="max-w-7xl mx-auto px-6 py-20 text-center">
       <i class="pi pi-shopping-bag text-6xl text-gray-300 mb-6"></i>
       <h2 class="text-2xl font-light text-gray-900 mb-3">Votre panier est vide</h2>
@@ -28,88 +27,159 @@
   } @else {
     <div class="max-w-7xl mx-auto px-6 py-12">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <!-- Cart Items -->
         <div class="lg:col-span-2">
           <div class="bg-white border border-gray-100">
-            <!-- Header Row -->
-            <div
-              class="hidden md:grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-xs font-semibold tracking-wider uppercase text-gray-500"
-            >
-              <div class="col-span-6">Article</div>
-              <div class="col-span-2 text-center">Quantité</div>
-              <div class="col-span-2 text-right">Prix</div>
-              <div class="col-span-2 text-right">Total</div>
-            </div>
-
-            @for (item of cartItems(); track item.variantId) {
-              <div
-                class="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-6 border-b border-gray-50 items-center"
-              >
-                <!-- Product Info -->
-                <div class="md:col-span-6 flex gap-4">
-                  <img
-                    [src]="item.product.image"
-                    [alt]="item.product.name"
-                    class="w-20 h-24 object-cover bg-gray-50 flex-shrink-0"
-                  />
-                  <div class="flex flex-col">
-                    <h3 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h3>
-                    @if (item.selectedSize) {
-                      <p class="text-xs text-gray-500 mt-1">Taille: {{ item.selectedSize }}</p>
-                    }
-                    @if (item.selectedColor) {
-                      <div class="flex items-center gap-2 mt-1">
-                        <span class="text-xs text-gray-500">Couleur:</span>
-                        <span
-                          class="w-3 h-3 rounded-full border border-gray-200"
-                          [style.backgroundColor]="item.selectedColor"
-                        ></span>
+            <!-- Desktop -->
+            <table class="cart-table hidden md:table w-full border-collapse">
+              <colgroup>
+                <col />
+                <col style="width: 26rem" />
+              </colgroup>
+              <thead>
+                <tr class="border-b border-gray-100 text-xs font-semibold tracking-wider uppercase text-gray-500">
+                  <th class="px-6 py-4 text-left font-semibold">Article</th>
+                  <th class="px-4 py-4 font-semibold">
+                    <div class="cart-line-meta cart-line-meta--header">
+                      <span class="text-center">Quantité</span>
+                      <span class="text-right">Prix</span>
+                      <span class="text-right">Total</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of cartItems(); track item.variantId) {
+                  <tr class="border-b border-gray-50">
+                    <td class="px-6 py-6 align-middle">
+                      <div class="flex gap-4 min-w-0">
+                        <img
+                          [src]="item.product.image"
+                          [alt]="item.product.name"
+                          class="w-20 h-24 object-cover bg-gray-50 shrink-0"
+                        />
+                        <div class="flex flex-col min-w-0">
+                          <h3 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h3>
+                          @if (item.selectedSize) {
+                            <p class="text-xs text-gray-500 mt-1">Taille: {{ item.selectedSize }}</p>
+                          }
+                          @if (item.selectedColor) {
+                            <div class="flex items-center gap-2 mt-1">
+                              <span class="text-xs text-gray-500">Couleur:</span>
+                              <span
+                                class="w-3 h-3 rounded-full border border-gray-200"
+                                [style.backgroundColor]="item.selectedColor"
+                              ></span>
+                            </div>
+                          }
+                          <button
+                            pButton
+                            type="button"
+                            label="Supprimer"
+                            icon="pi pi-trash"
+                            [text]="true"
+                            severity="danger"
+                            size="small"
+                            class="mt-2 text-xs self-start"
+                            (click)="removeItem(item.variantId)"
+                          ></button>
+                        </div>
                       </div>
-                    }
-                    <button
-                      pButton
-                      type="button"
-                      label="Supprimer"
-                      icon="pi pi-trash"
-                      [text]="true"
-                      severity="danger"
-                      size="small"
-                      class="mt-2 text-xs"
-                      (click)="removeItem(item.variantId)"
-                    ></button>
+                    </td>
+                    <td class="px-4 py-6 align-middle">
+                      <div class="cart-line-meta">
+                        <div class="cart-line-qty">
+                          <app-cart-item-quantity
+                            [compact]="true"
+                            [variantId]="item.variantId"
+                            [quantity]="item.quantity"
+                            [max]="item.product.stock || 1"
+                          />
+                        </div>
+                        <div class="cart-line-price">
+                          {{ item.product.price | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
+                        </div>
+                        <div class="cart-line-total">
+                          {{
+                            item.product.price * item.quantity
+                              | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR'
+                          }}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+
+            <!-- Mobile -->
+            <div class="md:hidden divide-y divide-gray-50">
+              @for (item of cartItems(); track item.variantId) {
+                <div class="px-6 py-6 space-y-4">
+                  <div class="flex gap-4">
+                    <img
+                      [src]="item.product.image"
+                      [alt]="item.product.name"
+                      class="w-20 h-24 object-cover bg-gray-50 shrink-0"
+                    />
+                    <div class="flex flex-col min-w-0 flex-1">
+                      <h3 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h3>
+                      @if (item.selectedSize) {
+                        <p class="text-xs text-gray-500 mt-1">Taille: {{ item.selectedSize }}</p>
+                      }
+                      @if (item.selectedColor) {
+                        <div class="flex items-center gap-2 mt-1">
+                          <span class="text-xs text-gray-500">Couleur:</span>
+                          <span
+                            class="w-3 h-3 rounded-full border border-gray-200"
+                            [style.backgroundColor]="item.selectedColor"
+                          ></span>
+                        </div>
+                      }
+                    </div>
                   </div>
-                </div>
 
-                <!-- Quantity -->
-                <div class="md:col-span-2 flex md:justify-center">
-                  <app-cart-item-quantity
-                    [variantId]="item.variantId"
-                    [quantity]="item.quantity"
-                    [max]="item.product.stock || 1"
-                  />
-                </div>
+                  <div class="flex items-center justify-between gap-4">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Quantité</span>
+                    <app-cart-item-quantity
+                      [variantId]="item.variantId"
+                      [quantity]="item.quantity"
+                      [max]="item.product.stock || 1"
+                    />
+                  </div>
 
-                <!-- Unit Price -->
-                <div class="md:col-span-2 md:text-right">
-                  <p class="text-sm text-gray-900">
-                    {{ item.product.price | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
-                  </p>
-                </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Prix</span>
+                    <span class="text-sm text-gray-900">
+                      {{ item.product.price | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
+                    </span>
+                  </div>
 
-                <!-- Total -->
-                <div class="md:col-span-2 md:text-right">
-                  <p class="text-sm font-semibold text-gray-900">
-                    {{
-                      item.product.price * item.quantity
-                        | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR'
-                    }}
-                  </p>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
+                    <span class="text-sm font-semibold text-gray-900">
+                      {{
+                        item.product.price * item.quantity
+                          | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR'
+                      }}
+                    </span>
+                  </div>
+
+                  <button
+                    pButton
+                    type="button"
+                    label="Supprimer"
+                    icon="pi pi-trash"
+                    [text]="true"
+                    severity="danger"
+                    size="small"
+                    class="text-xs"
+                    (click)="removeItem(item.variantId)"
+                  ></button>
                 </div>
-              </div>
-            }
+              }
+            </div>
           </div>
 
-          <!-- Continue Shopping -->
           <div class="mt-6">
             <button
               pButton
@@ -123,7 +193,6 @@
           </div>
         </div>
 
-        <!-- Order Summary -->
         <div class="lg:col-span-1">
           <div class="bg-white border border-gray-100 p-6">
             <h3 class="text-sm font-semibold tracking-wider uppercase text-gray-900 mb-6">
@@ -165,7 +234,7 @@
               [text]="true"
               severity="danger"
               class="w-full mt-3 text-xs"
-              (onClick)="clearCart()"
+              (click)="clearCart()"
             ></button>
           </div>
         </div>

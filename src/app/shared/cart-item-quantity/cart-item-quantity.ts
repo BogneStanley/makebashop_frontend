@@ -6,26 +6,14 @@ import { CartService } from '../../core/services/cart.service';
 @Component({
   selector: 'app-cart-item-quantity',
   imports: [FormsModule, InputNumberModule],
-  template: `
-    <p-inputNumber
-      [ngModel]="quantity()"
-      (ngModelChange)="onQuantityChange($event)"
-      (onBlur)="onBlur()"
-      (onInput)="markKeyboardInput()"
-      [showButtons]="true"
-      buttonLayout="horizontal"
-      spinnerMode="horizontal"
-      [min]="1"
-      [max]="max()"
-      size="small"
-      class="w-24"
-    ></p-inputNumber>
-  `,
+  templateUrl: './cart-item-quantity.html',
+  styleUrl: './cart-item-quantity.css',
 })
 export class CartItemQuantity {
   variantId = input.required<number>();
   quantity = input.required<number>();
   max = input.required<number>();
+  compact = input(false);
 
   private cartService = inject(CartService);
   private fromKeyboard = false;
@@ -41,5 +29,15 @@ export class CartItemQuantity {
 
   markKeyboardInput(): void {
     this.fromKeyboard = true;
+  }
+
+  decrease(): void {
+    this.onQuantityChange(Math.max(1, this.quantity() - 1));
+    this.cartService.flushDraftQuantity(this.variantId());
+  }
+
+  increase(): void {
+    this.onQuantityChange(Math.min(this.max(), this.quantity() + 1));
+    this.cartService.flushDraftQuantity(this.variantId());
   }
 }

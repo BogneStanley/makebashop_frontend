@@ -35,7 +35,8 @@
   border: 1px solid #e5e7eb !important;
   border-radius: 0 !important;
   text-align: center !important;
-  width: 2.5rem !important;
+  width: 3.25rem !important;
+  min-width: 3.25rem !important;
   font-weight: 300 !important;
   box-shadow: none !important;
   padding: 0.25rem 0 !important;

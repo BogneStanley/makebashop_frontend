@@ -1,0 +1,62 @@
+:host {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.cart-qty-compact {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  height: 2.5rem;
+}
+
+.cart-qty-compact-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 100%;
+  background: #fff;
+  color: #4b5563;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cart-qty-compact-btn:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.cart-qty-compact-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cart-qty-compact-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.5rem;
+  padding: 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  border-left: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+}
+
+:host ::ng-deep .cart-qty-input.p-inputnumber {
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+}
+
+:host ::ng-deep .cart-qty-input .p-inputnumber-input {
+  width: 3.25rem !important;
+  min-width: 3.25rem !important;
+  flex: 0 0 3.25rem;
+}
+
+:host ::ng-deep .cart-qty-input .p-inputnumber-button {
+  flex: 0 0 auto;
+}

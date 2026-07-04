@@ -1,38 +1,41 @@
-/* Custom PrimeNG overrides for Cart page */
-:host ::ng-deep {
-  .p-inputnumber {
-    height: 2.4rem;
-  }
+.cart-table {
+  table-layout: fixed;
+}
 
-  .p-inputnumber-button {
-    background: #ffffff !important;
-    color: #4b5563 !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 0 !important;
-    padding: 0.3rem 0.6rem !important;
-    transition: background-color 0.2s;
-  }
+.cart-line-meta {
+  display: grid;
+  grid-template-columns: 10rem 1fr 1fr;
+  align-items: center;
+  column-gap: 1rem;
+  width: 100%;
+  max-width: 26rem;
+  margin-left: auto;
+}
 
-  .p-inputnumber-button:hover {
-    background: #f9fafb !important;
-  }
+.cart-line-meta--header {
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
 
-  .p-inputnumber-input {
-    border: 1px solid #e5e7eb !important;
-    border-radius: 0 !important;
-    text-align: center !important;
-    width: 2.5rem !important;
-    font-weight: 300 !important;
-    box-shadow: none !important;
-    padding: 0.3rem 0 !important;
-  }
+.cart-line-qty {
+  display: flex;
+  justify-content: center;
+}
 
-  .p-inputnumber-input:focus {
-    outline: none !important;
-    border-color: #d97706 !important;
-  }
+.cart-line-price,
+.cart-line-total {
+  font-size: 0.875rem;
+  text-align: right;
+  white-space: nowrap;
+  color: #111827;
+}
 
-  .p-button {
-    font-family: inherit;
-  }
+.cart-line-total {
+  font-weight: 600;
+}
+
+:host ::ng-deep .p-button {
+  font-family: inherit;
 }
