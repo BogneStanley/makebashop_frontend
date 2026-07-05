@@ -94,6 +94,13 @@ export const routes: Routes = [
                 (m) => m.HighlightsSettingsPage,
               ),
           },
+          {
+            path: 'contact',
+            loadComponent: () =>
+              import('./features/admin/settings/contact-settings.page').then(
+                (m) => m.ContactSettingsPage,
+              ),
+          },
         ],
       },
     ],

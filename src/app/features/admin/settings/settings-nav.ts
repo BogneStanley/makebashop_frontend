@@ -14,6 +14,13 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     icon: 'pi pi-star',
     route: 'highlights',
   },
+  {
+    category: 'Boutique',
+    label: 'Contacts',
+    description: 'Email, téléphone, adresse, réseaux sociaux et WhatsApp.',
+    icon: 'pi pi-phone',
+    route: 'contact',
+  },
 ];
 
 export function groupSettingsByCategory(

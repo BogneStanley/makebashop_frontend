@@ -8,18 +8,43 @@
       <p class="text-sm font-light leading-relaxed text-amber-100/50 max-w-sm mt-3">
         Mode premium pour femmes. Qualité artisanale et design intemporel pour une élégance quotidienne.
       </p>
-      <!-- Socials -->
-      <div class="flex gap-4 mt-6">
-        <a href="#" class="w-9 h-9 rounded-full border border-amber-900/50 flex items-center justify-center hover:border-amber-500 hover:text-amber-400 transition-colors">
-          <i class="pi pi-instagram text-sm"></i>
-        </a>
-        <a href="#" class="w-9 h-9 rounded-full border border-amber-900/50 flex items-center justify-center hover:border-amber-500 hover:text-amber-400 transition-colors">
-          <i class="pi pi-facebook text-sm"></i>
-        </a>
-        <a href="#" class="w-9 h-9 rounded-full border border-amber-900/50 flex items-center justify-center hover:border-amber-500 hover:text-amber-400 transition-colors">
-          <i class="pi pi-twitter text-sm"></i>
-        </a>
-      </div>
+      @if (instagram() || facebook() || tiktok()) {
+        <div class="flex gap-4 mt-6">
+          @if (instagram(); as url) {
+            <a
+              [href]="url"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              class="w-9 h-9 rounded-full border border-amber-900/50 flex items-center justify-center hover:border-amber-500 hover:text-amber-400 transition-colors"
+            >
+              <i class="pi pi-instagram text-sm"></i>
+            </a>
+          }
+          @if (facebook(); as url) {
+            <a
+              [href]="url"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              class="w-9 h-9 rounded-full border border-amber-900/50 flex items-center justify-center hover:border-amber-500 hover:text-amber-400 transition-colors"
+            >
+              <i class="pi pi-facebook text-sm"></i>
+            </a>
+          }
+          @if (tiktok(); as url) {
+            <a
+              [href]="url"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="TikTok"
+              class="w-9 h-9 rounded-full border border-amber-900/50 flex items-center justify-center hover:border-amber-500 hover:text-amber-400 transition-colors"
+            >
+              <i class="pi pi-tiktok text-sm"></i>
+            </a>
+          }
+        </div>
+      }
     </div>
 
     <!-- Navigation -->
@@ -33,14 +58,31 @@
     </div>
 
     <!-- Contact -->
-    <div>
-      <h4 class="text-white text-xs font-semibold tracking-[0.2em] uppercase mb-5">Contact</h4>
-      <ul class="space-y-3 text-sm font-light text-amber-100/50">
-        <li class="flex items-center gap-2"><i class="pi pi-envelope text-xs text-amber-600"></i> contact&#64;makeba.cm</li>
-        <li class="flex items-center gap-2"><i class="pi pi-phone text-xs text-amber-600"></i> +237 6 00 00 00 00</li>
-        <li class="flex items-center gap-2"><i class="pi pi-map-marker text-xs text-amber-600"></i> Yaoundé, Cameroun</li>
-      </ul>
-    </div>
+    @if (email() || phone() || address()) {
+      <div>
+        <h4 class="text-white text-xs font-semibold tracking-[0.2em] uppercase mb-5">Contact</h4>
+        <ul class="space-y-3 text-sm font-light text-amber-100/50">
+          @if (email(); as value) {
+            <li class="flex items-center gap-2">
+              <i class="pi pi-envelope text-xs text-amber-600"></i>
+              <a [href]="'mailto:' + value" class="hover:text-amber-400 transition-colors">{{ value }}</a>
+            </li>
+          }
+          @if (phone(); as value) {
+            <li class="flex items-center gap-2">
+              <i class="pi pi-phone text-xs text-amber-600"></i>
+              <span>{{ value }}</span>
+            </li>
+          }
+          @if (address(); as value) {
+            <li class="flex items-center gap-2">
+              <i class="pi pi-map-marker text-xs text-amber-600"></i>
+              <span>{{ value }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
   </div>
 
   <!-- Bottom Bar -->

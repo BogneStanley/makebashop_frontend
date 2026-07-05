@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import { Observable, catchError, map, of } from 'rxjs';
+import { Observable, catchError, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ResponseWrapper } from '../models/common/api-wrapper.models';
 import { Paginated } from '../models/common/pagination.models';
@@ -16,11 +16,11 @@ import {
   toOrderListItemView,
 } from '../models/orders/order.models';
 import { OrderResponse } from '../models/orders/order-response.models';
+import { CONTACT_KEYS } from '../models/settings';
 import { buildOrderParams, hasOrderSearchFilters } from '../utils/build-order-query';
 import { mapHttpError } from '../utils/map-http-error';
+import { ContactSettingsService } from './contact-settings.service';
 import { NotificationService } from './notification.service';
-
-const SHOP_WHATSAPP_NUMBER = '221771234567';
 
 @Injectable({
   providedIn: 'root',
@@ -28,6 +28,7 @@ const SHOP_WHATSAPP_NUMBER = '221771234567';
 export class OrderService {
   private http = inject(HttpClient);
   private notifications = inject(NotificationService);
+  private contactSettingsService = inject(ContactSettingsService);
   private platformId = inject(PLATFORM_ID);
   private readonly baseUrl = `${environment.apiUrl}/orders`;
 
@@ -83,18 +84,24 @@ export class OrderService {
       body.note = note;
     }
 
-    return this.http
-      .post<ResponseWrapper<OrderResponse>>(`${this.baseUrl}/checkout`, body)
-      .pipe(
-        map((response) => ({
-          order: response.data,
-          whatsappUrl: this.buildWhatsappUrl(response.data),
-        })),
-        catchError((error) => {
-          this.notifications.error(mapHttpError(error));
-          return of(null);
-        }),
-      );
+    return this.contactSettingsService.getContacts().pipe(
+      switchMap((settings) => {
+        const whatsappNumber = settings?.contacts?.[CONTACT_KEYS.whatsapp];
+
+        return this.http
+          .post<ResponseWrapper<OrderResponse>>(`${this.baseUrl}/checkout`, body)
+          .pipe(
+            map((response) => ({
+              order: response.data,
+              whatsappUrl: this.buildWhatsappUrl(response.data, whatsappNumber),
+            })),
+            catchError((error) => {
+              this.notifications.error(mapHttpError(error));
+              return of(null);
+            }),
+          );
+      }),
+    );
   }
 
   markAsPaid(orderId: number): Observable<boolean> {
@@ -125,7 +132,7 @@ export class OrderService {
     );
   }
 
-  buildWhatsappUrl(order: OrderResponse): string {
+  buildWhatsappUrl(order: OrderResponse, whatsappNumber?: string): string {
     const lines = [
       `Bonjour, je souhaite confirmer ma commande *${order.orderNumber}*.`,
       '',
@@ -152,8 +159,11 @@ export class OrderService {
       lines.push('', `*Note :* ${order.note}`);
     }
 
-    const text = encodeURIComponent(lines.join('\n'));
-    return `https://wa.me/${SHOP_WHATSAPP_NUMBER}?text=${text}`;
+    if (!whatsappNumber?.trim()) {
+      return '';
+    }
+
+    return this.contactSettingsService.buildWhatsappUrl(whatsappNumber, lines.join('\n'));
   }
 
   private mapPaginatedOrders(

@@ -1,0 +1,3 @@
+:host ::ng-deep textarea.p-textarea {
+  width: 100%;
+}

@@ -6,6 +6,7 @@ import { finalize } from 'rxjs';
 import { Header } from '../../../shared/header/header';
 import { Footer } from '../../../shared/footer/footer';
 import { CartService } from '../../../core/services/cart.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { OrderService } from '../../../core/services/order.service';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -29,6 +30,7 @@ import { TextareaModule } from 'primeng/textarea';
 export class Checkout implements OnInit {
   private cartService = inject(CartService);
   private orderService = inject(OrderService);
+  private notifications = inject(NotificationService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
@@ -97,10 +99,22 @@ export class Checkout implements OnInit {
 
         this.cartService.clearCart().subscribe({
           next: () => {
-            window.location.href = response.whatsappUrl;
+            if (response.whatsappUrl) {
+              window.location.href = response.whatsappUrl;
+              return;
+            }
+
+            this.notifications.success('Commande enregistrée avec succès.');
+            void this.router.navigate(['/']);
           },
           error: () => {
-            window.location.href = response.whatsappUrl;
+            if (response.whatsappUrl) {
+              window.location.href = response.whatsappUrl;
+              return;
+            }
+
+            this.notifications.success('Commande enregistrée avec succès.');
+            void this.router.navigate(['/']);
           },
         });
       });

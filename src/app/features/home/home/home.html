@@ -107,7 +107,13 @@
       Rejoignez notre groupe WhatsApp pour recevoir en avant-première nos nouvelles collections et
       offres exclusives.
     </p>
-    <button pButton type="button" label="Rejoindre le groupe WhatsApp"></button>
+    <button
+      pButton
+      type="button"
+      label="Rejoindre le groupe WhatsApp"
+      [disabled]="!whatsappGroupUrl()"
+      (click)="openWhatsappGroup()"
+    ></button>
   </div>
 </section>
 

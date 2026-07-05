@@ -1,0 +1,74 @@
+<div>
+  <div class="mb-8">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-900">Contacts</h2>
+    <p class="mt-2 max-w-2xl text-sm font-light leading-relaxed text-gray-500">
+      Coordonnées affichées dans le footer, le numéro WhatsApp utilisé lors des commandes et le lien
+      du groupe sur la page d’accueil. Laissez un champ vide pour le masquer.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center gap-4 py-16" role="status" aria-busy="true">
+      <p-progressSpinner ariaLabel="Chargement des contacts" />
+      <p class="text-sm font-light text-gray-500">Chargement…</p>
+    </div>
+  } @else {
+    @if (error()) {
+      <p-message severity="error" [text]="error()!" styleClass="mb-6 w-full" />
+    }
+
+    <form class="grid grid-cols-1 gap-6 md:grid-cols-2" (ngSubmit)="save()">
+      @for (field of fields; track field.key) {
+        <div class="border border-gray-100 bg-white p-5 md:p-6">
+          <label
+            [for]="'contact-' + field.key"
+            class="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-900"
+          >
+            <i [class]="'pi ' + field.icon + ' text-amber-600'"></i>
+            {{ field.label }}
+          </label>
+
+          @if (field.key === 'address') {
+            <textarea
+              pTextarea
+              [id]="'contact-' + field.key"
+              [ngModel]="fieldValue(field)"
+              (ngModelChange)="updateField(field.key, $event)"
+              [name]="field.key"
+              [placeholder]="field.placeholder"
+              rows="3"
+              class="w-full"
+              [disabled]="saving()"
+            ></textarea>
+          } @else {
+            <input
+              pInputText
+              [id]="'contact-' + field.key"
+              [ngModel]="fieldValue(field)"
+              (ngModelChange)="updateField(field.key, $event)"
+              [name]="field.key"
+              [placeholder]="field.placeholder"
+              class="w-full"
+              [disabled]="saving()"
+            />
+          }
+
+          @if (field.hint) {
+            <p class="mt-2 text-xs font-light text-gray-400">{{ field.hint }}</p>
+          }
+        </div>
+      }
+
+      <div class="md:col-span-2 flex justify-end">
+        <p-button
+          type="submit"
+          label="Enregistrer"
+          icon="pi pi-check"
+          [loading]="saving()"
+          [disabled]="saving()"
+          styleClass="bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-xs uppercase tracking-wider font-semibold"
+        />
+      </div>
+    </form>
+  }
+</div>
