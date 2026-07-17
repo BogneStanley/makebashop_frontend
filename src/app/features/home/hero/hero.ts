@@ -12,7 +12,7 @@ import { InputTextModule } from 'primeng/inputtext';
 export class Hero {
   title = input("Redécouvrez l'élégance");
   subtitle = input(
-    'Nous offrons une sélection exclusive de vêtements pour femmes, alliant style intemporel et qualité supérieure. Explorez nos produits et trouvez votre prochain coup de cœur mode.',
+    'Nous offrons une sélection exclusive de vêtements pour femmes, alliant style et qualité. Explorez nos produits et trouvez votre prochain coup de cœur.',
   );
   ctaText = input('Parcourir les articles');
   ctaLink = input('/products');

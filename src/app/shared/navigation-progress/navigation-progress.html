@@ -1,0 +1,14 @@
+@if (loading.isNavigating()) {
+  <div
+    class="navigation-progress"
+    role="progressbar"
+    aria-live="polite"
+    aria-busy="true"
+    aria-label="Chargement de la page"
+    [attr.aria-valuenow]="loading.progress()"
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
+    <p-progressbar [value]="loading.progress()" [showValue]="false" />
+  </div>
+}
