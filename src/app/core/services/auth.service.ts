@@ -37,6 +37,10 @@ export class AuthService {
     return this.currentUser;
   }
 
+  syncCurrentUser(user: AuthUser): void {
+    this.currentUser.set(user);
+  }
+
   ensureSession(): Observable<void> {
     if (!this.isBrowser()) {
       return of(undefined);

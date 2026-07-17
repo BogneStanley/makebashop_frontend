@@ -23,9 +23,13 @@
     <span class="text-[10px] tracking-[0.25em] uppercase text-amber-600 font-semibold block mb-1">
       Administration
     </span>
-    <p class="text-sm font-light text-amber-100/50 truncate">
+    <a
+      routerLink="/manage/profile"
+      (click)="onNavClick()"
+      class="text-sm font-light text-amber-100/50 truncate hover:text-amber-400 transition-colors block"
+    >
       {{ currentUser()?.email }}
-    </p>
+    </a>
   </div>
 
   <nav class="flex-1 overflow-y-auto px-3 py-4">
