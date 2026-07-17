@@ -6,8 +6,7 @@
       <h1 class="text-4xl font-thin text-gray-900 tracking-wide">Finaliser la commande</h1>
       <div class="w-16 h-0.5 bg-amber-600 mt-3"></div>
       <p class="text-sm font-light text-gray-500 mt-4 max-w-2xl">
-        Vérifiez votre panier et renseignez vos coordonnées pour confirmer votre commande via
-        WhatsApp.
+        Vérifiez votre panier et renseignez vos coordonnées pour confirmer votre commande.
       </p>
     </div>
   </div>
@@ -146,11 +145,11 @@
               <button
                 pButton
                 type="submit"
-                label="Commander via WhatsApp"
-                icon="pi pi-whatsapp"
+                label="Confirmer la commande"
+                icon="pi pi-check"
                 [loading]="isSubmitting()"
                 [disabled]="isSubmitting()"
-                class="flex-1 bg-green-600 border-green-600 hover:bg-green-700 hover:border-green-700 rounded-0 text-sm uppercase tracking-wider font-semibold"
+                class="flex-1 bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-sm uppercase tracking-wider font-semibold"
               ></button>
               <button
                 pButton
@@ -220,7 +219,7 @@
             </div>
             <div class="flex justify-between">
               <span class="text-sm font-light text-gray-600">Livraison</span>
-              <span class="text-sm font-medium text-gray-500">À convenir via WhatsApp</span>
+              <span class="text-sm font-medium text-gray-500">Calculée à l'étape suivante</span>
             </div>
             <div class="flex justify-between pt-3 border-t border-gray-100">
               <span class="text-sm font-semibold text-gray-900">Total</span>
@@ -231,8 +230,8 @@
           </div>
 
           <p class="text-xs font-light text-gray-500 mt-6 leading-relaxed">
-            En cliquant sur « Commander via WhatsApp », votre commande sera enregistrée et vous
-            serez redirigé vers WhatsApp pour finaliser avec notre équipe.
+            En cliquant sur « Confirmer la commande », votre commande sera enregistrée et notre
+            équipe vous contactera pour finaliser la livraison.
           </p>
         </div>
       </div>

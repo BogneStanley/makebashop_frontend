@@ -20,6 +20,7 @@ import { Footer } from '../../../shared/footer/footer';
 import { Product } from '../../../core/services/product.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { CartService } from '../../../core/services/cart.service';
+import { WhatsappOrderingService } from '../../../core/services/whatsapp-ordering.service';
 import {
   findShopVariant,
   getCheapestVariant,
@@ -47,9 +48,11 @@ export class ProductDetails implements OnInit {
   private route = inject(ActivatedRoute);
   private catalogService = inject(CatalogService);
   private cartService = inject(CartService);
+  private whatsappOrderingService = inject(WhatsappOrderingService);
   private destroyRef = inject(DestroyRef);
 
   addingToCart = this.cartService.isAddingToCart();
+  whatsappOrderingEnabled = this.whatsappOrderingService.enabled;
 
   product = signal<Product | undefined>(undefined);
   loading = signal(true);
@@ -163,6 +166,23 @@ export class ProductDetails implements OnInit {
     }
 
     this.cartService.addToCart(prod.id, variant.id, this.quantity()).subscribe();
+  }
+
+  orderViaWhatsapp(): void {
+    const prod = this.product();
+    const variant = this.selectedVariant();
+
+    if (!prod || this.variantStock() === 0 || !variant) {
+      return;
+    }
+
+    this.whatsappOrderingService.orderProduct({
+      product: prod,
+      size: variant.size,
+      color: variant.color,
+      price: variant.price,
+      quantity: this.quantity(),
+    });
   }
 
   private applyProduct(prod: Product): void {

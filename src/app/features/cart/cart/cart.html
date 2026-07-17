@@ -226,14 +226,25 @@
                   {{ cartTotal() | currency: 'FCFA' : 'symbol' : '1.0-0' : 'fr-FR' }}
                 </span>
               </div>
-              <button
-                pButton
-                type="button"
-                label="Passer la commande"
-                icon="pi pi-arrow-right"
-                class="w-full bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-sm uppercase tracking-wider font-semibold"
-                routerLink="/checkout"
-              ></button>
+              @if (whatsappOrderingEnabled) {
+                <button
+                  pButton
+                  type="button"
+                  label="Commander via WhatsApp"
+                  icon="pi pi-whatsapp"
+                  class="w-full bg-green-600 border-green-600 hover:bg-green-700 hover:border-green-700 rounded-0 text-sm uppercase tracking-wider font-semibold"
+                  (click)="orderViaWhatsapp()"
+                ></button>
+              } @else {
+                <button
+                  pButton
+                  type="button"
+                  label="Passer la commande"
+                  icon="pi pi-arrow-right"
+                  class="w-full bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-sm uppercase tracking-wider font-semibold"
+                  routerLink="/checkout"
+                ></button>
+              }
             </div>
 
             <button

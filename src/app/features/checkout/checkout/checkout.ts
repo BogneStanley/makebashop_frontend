@@ -8,6 +8,7 @@ import { Footer } from '../../../shared/footer/footer';
 import { CartService } from '../../../core/services/cart.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { OrderService } from '../../../core/services/order.service';
+import { WhatsappOrderingService } from '../../../core/services/whatsapp-ordering.service';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
@@ -30,10 +31,12 @@ import { TextareaModule } from 'primeng/textarea';
 export class Checkout implements OnInit {
   private cartService = inject(CartService);
   private orderService = inject(OrderService);
+  private whatsappOrderingService = inject(WhatsappOrderingService);
   private notifications = inject(NotificationService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
+  whatsappOrderingEnabled = this.whatsappOrderingService.enabled;
   cartItems = this.cartService.getCartItems();
   cartTotal = computed(() => this.cartService.getCartTotal());
   cartCount = computed(() => this.cartService.getCartCount());
@@ -50,6 +53,11 @@ export class Checkout implements OnInit {
   });
 
   ngOnInit(): void {
+    if (this.whatsappOrderingEnabled) {
+      void this.router.navigate(['/cart']);
+      return;
+    }
+
     if (this.cartItems().length === 0) {
       void this.router.navigate(['/cart']);
     }
