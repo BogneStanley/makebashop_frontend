@@ -33,6 +33,7 @@ export class AdminSidebar {
     { label: 'Catégories', icon: 'pi pi-tags', route: '/manage/categories' },
     { label: 'Produits', icon: 'pi pi-box', route: '/manage/products' },
     { label: 'Commandes', icon: 'pi pi-shopping-bag', route: '/manage/orders' },
+    { label: 'Utilisateurs', icon: 'pi pi-users', route: '/manage/users' },
     { label: 'Mon profil', icon: 'pi pi-user', route: '/manage/profile' },
     { label: 'Paramètres', icon: 'pi pi-cog', route: '/manage/settings', exact: false },
   ];

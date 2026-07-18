@@ -78,6 +78,11 @@ export const routes: Routes = [
           import('./features/orders/pages/order-detail.page').then((m) => m.OrderDetailPage),
       },
       {
+        path: 'users',
+        loadComponent: () =>
+          import('./features/admin/users/user-list').then((m) => m.UserList),
+      },
+      {
         path: 'profile',
         loadComponent: () =>
           import('./features/admin/profile/profile.page').then((m) => m.ProfilePage),
