@@ -1,5 +1,5 @@
 export const environment = {
-  apiUrl: 'http://localhost:8080/api/v1',
+  apiUrl: 'https://mabeba-shop-api.stanleybogne.com/api/v1',
   whatsappOrderingEnabled: true,
-  siteUrl: 'http://localhost:4200',
+  siteUrl: 'https://mabeba-shop-api.stanleybogne.com',
 };
