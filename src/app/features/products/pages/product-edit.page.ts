@@ -73,6 +73,8 @@ export class ProductEditPage implements OnInit {
   general = signal({
     name: '',
     description: '',
+    details: '',
+    shippingInfo: '',
     isActive: true,
     categoryIds: [] as number[],
   });
@@ -336,6 +338,8 @@ export class ProductEditPage implements OnInit {
       .updateProduct(productId, {
         name: general.name.trim(),
         description: general.description.trim(),
+        details: general.details.trim(),
+        shippingInfo: general.shippingInfo.trim(),
         isActive: general.isActive,
         categoryIds: general.categoryIds,
       })
@@ -397,6 +401,8 @@ export class ProductEditPage implements OnInit {
     this.general.set({
       name: product.name,
       description: product.description,
+      details: product.details ?? '',
+      shippingInfo: product.shippingInfo ?? '',
       isActive: product.isActive,
       categoryIds: product.categories.map((category) => category.id),
     });

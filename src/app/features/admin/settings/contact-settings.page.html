@@ -28,7 +28,7 @@
             {{ field.label }}
           </label>
 
-          @if (field.key === 'address') {
+          @if (field.type === 'textarea' || field.key === 'address') {
             <textarea
               pTextarea
               [id]="'contact-' + field.key"
@@ -36,8 +36,8 @@
               (ngModelChange)="updateField(field.key, $event)"
               [name]="field.key"
               [placeholder]="field.placeholder"
-              rows="3"
-              class="w-full"
+              rows="4"
+              class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light text-sm"
               [disabled]="saving()"
             ></textarea>
           } @else {

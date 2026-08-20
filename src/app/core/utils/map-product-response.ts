@@ -21,6 +21,8 @@ export function toShopProduct(product: ProductResponse): Product {
     image: primaryImage?.url ?? product.images[0]?.url ?? '',
     images: product.images.map((image) => image.url),
     description: product.description,
+    details: product.details ?? undefined,
+    shippingInfo: product.shippingInfo ?? undefined,
     category: product.categories.map((category) => category.name).join(', '),
     stock: getTotalStock(product),
     sizes: getAllSizes(variants),

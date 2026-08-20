@@ -41,6 +41,46 @@
   </div>
 
   <div>
+    <label
+      for="product-details"
+      class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900"
+    >
+      Détails / Caractéristiques (un élément par ligne)
+    </label>
+    <textarea
+      id="product-details"
+      pTextarea
+      formControlName="details"
+      rows="4"
+      placeholder="Ex. Matières premières de première qualité&#10;Conception soignée et coutures renforcées"
+      class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light text-sm"
+    ></textarea>
+    <p class="mt-1 text-xs font-light text-gray-400">
+      Laissez vide pour utiliser les détails par défaut configurés dans les paramètres généraux.
+    </p>
+  </div>
+
+  <div>
+    <label
+      for="product-shipping-info"
+      class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900"
+    >
+      Livraison & Retours (spécifique au produit)
+    </label>
+    <textarea
+      id="product-shipping-info"
+      pTextarea
+      formControlName="shippingInfo"
+      rows="4"
+      placeholder="Ex. Livraison sous 48h gratuite. Retours acceptés sous 14 jours."
+      class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light text-sm"
+    ></textarea>
+    <p class="mt-1 text-xs font-light text-gray-400">
+      Laissez vide pour utiliser l'information de livraison par défaut configurée dans les paramètres.
+    </p>
+  </div>
+
+  <div>
     <label for="product-categories" class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-900">
       Catégories <span class="text-red-500">*</span>
     </label>

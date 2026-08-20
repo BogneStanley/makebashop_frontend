@@ -21,6 +21,7 @@ import { Product } from '../../../core/services/product.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { CartService } from '../../../core/services/cart.service';
 import { WhatsappOrderingService } from '../../../core/services/whatsapp-ordering.service';
+import { ContactSettingsService } from '../../../core/services/contact-settings.service';
 import {
   findShopVariant,
   getCheapestVariant,
@@ -49,18 +50,64 @@ export class ProductDetails implements OnInit {
   private catalogService = inject(CatalogService);
   private cartService = inject(CartService);
   private whatsappOrderingService = inject(WhatsappOrderingService);
+  private contactSettingsService = inject(ContactSettingsService);
   private destroyRef = inject(DestroyRef);
 
   addingToCart = this.cartService.isAddingToCart();
   whatsappOrderingEnabled = this.whatsappOrderingService.enabled;
 
   product = signal<Product | undefined>(undefined);
+  globalSettings = signal<Record<string, string>>({});
   loading = signal(true);
   selectedImage = signal<string>('');
   selectedColor = signal<string>('');
   selectedSize = signal<string>('');
   quantity = signal<number>(1);
   activeTab = signal<string>('description');
+
+  productDetailsList = computed(() => {
+    const prod = this.product();
+    const specificDetails = prod?.details?.trim();
+    if (specificDetails) {
+      return specificDetails
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .map((line) => line.replace(/^[-*•]\s*/, ''));
+    }
+
+    const globalDetails = this.globalSettings()['default_details']?.trim();
+    if (globalDetails) {
+      return globalDetails
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .map((line) => line.replace(/^[-*•]\s*/, ''));
+    }
+
+    return ['Aucune information supplémentaire'];
+  });
+
+  productShippingInfoParagraphs = computed(() => {
+    const prod = this.product();
+    const specificShipping = prod?.shippingInfo?.trim();
+    if (specificShipping) {
+      return specificShipping
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+    }
+
+    const globalShipping = this.globalSettings()['default_shipping_info']?.trim();
+    if (globalShipping) {
+      return globalShipping
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+    }
+
+    return ['Aucune information de livraison'];
+  });
 
   availableSizes = computed(() => {
     const prod = this.product();
@@ -104,6 +151,15 @@ export class ProductDetails implements OnInit {
   });
 
   ngOnInit(): void {
+    this.contactSettingsService
+      .getContacts()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((settings) => {
+        if (settings?.contacts) {
+          this.globalSettings.set(settings.contacts);
+        }
+      });
+
     this.route.paramMap
       .pipe(
         switchMap((params) => {

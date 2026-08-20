@@ -9,6 +9,8 @@ export interface ProductVariantRequest {
 export interface CreateProductRequest {
   name: string;
   description: string;
+  details?: string;
+  shippingInfo?: string;
   categoryIds: number[];
   productVariants: ProductVariantRequest[];
 }
@@ -16,6 +18,8 @@ export interface CreateProductRequest {
 export interface UpdateProductRequest {
   name?: string;
   description?: string;
+  details?: string;
+  shippingInfo?: string;
   isActive?: boolean;
   categoryIds?: number[];
 }

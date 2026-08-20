@@ -16,6 +16,8 @@ export const CONTACT_KEYS = {
   address: 'address',
   whatsapp: 'whatsapp',
   whatsappGroup: 'whatsapp_group',
+  defaultDetails: 'default_details',
+  defaultShippingInfo: 'default_shipping_info',
 } as const;
 
 export type ContactKey = (typeof CONTACT_KEYS)[keyof typeof CONTACT_KEYS];
@@ -26,6 +28,7 @@ export interface ContactFieldDefinition {
   placeholder: string;
   icon: string;
   hint?: string;
+  type?: 'input' | 'textarea';
 }
 
 export const CONTACT_FIELD_DEFINITIONS: ContactFieldDefinition[] = [
@@ -60,6 +63,22 @@ export const CONTACT_FIELD_DEFINITIONS: ContactFieldDefinition[] = [
     placeholder: 'https://chat.whatsapp.com/xxxxx',
     icon: 'pi-users',
     hint: 'Lien d’invitation affiché sur la page d’accueil.',
+  },
+  {
+    key: CONTACT_KEYS.defaultDetails,
+    label: 'Détails du produit (par défaut)',
+    placeholder: 'Matières premières de première qualité\nConception soignée',
+    icon: 'pi-list',
+    type: 'textarea',
+    hint: 'Détails affichés sur les produits si aucun détail spécifique n’est renseigné (un élément par ligne).',
+  },
+  {
+    key: CONTACT_KEYS.defaultShippingInfo,
+    label: 'Livraison & Retours (par défaut)',
+    placeholder: 'Livraison gratuite dès 100 000 FCFA.\nRetours sous 14 jours.',
+    icon: 'pi-truck',
+    type: 'textarea',
+    hint: 'Informations de livraison affichées sur les produits par défaut.',
   },
   {
     key: CONTACT_KEYS.instagram,

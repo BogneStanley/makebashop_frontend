@@ -38,7 +38,13 @@ export class ProductCreatePage implements OnInit, OnDestroy {
 
   categories = this.categoryService.categoriesList;
 
-  general = signal({ name: '', description: '', categoryIds: [] as number[] });
+  general = signal({
+    name: '',
+    description: '',
+    details: '',
+    shippingInfo: '',
+    categoryIds: [] as number[],
+  });
   variants = signal<VariantRow[]>([]);
   images = signal<(ProductImageResponse & { file?: File })[]>([]);
 
@@ -65,12 +71,16 @@ export class ProductCreatePage implements OnInit, OnDestroy {
   onGeneralChange(value: {
     name: string;
     description: string;
+    details: string;
+    shippingInfo: string;
     isActive: boolean;
     categoryIds: number[];
   }): void {
     this.general.set({
       name: value.name,
       description: value.description,
+      details: value.details,
+      shippingInfo: value.shippingInfo,
       categoryIds: value.categoryIds,
     });
   }
@@ -144,6 +154,8 @@ export class ProductCreatePage implements OnInit, OnDestroy {
     const request: CreateProductRequest = {
       name: this.general().name.trim(),
       description: this.general().description.trim(),
+      details: this.general().details.trim(),
+      shippingInfo: this.general().shippingInfo.trim(),
       categoryIds: this.general().categoryIds,
       productVariants: this.variants().map((variant) => ({
         sku: variant.sku.trim(),

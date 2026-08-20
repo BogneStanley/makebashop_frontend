@@ -32,6 +32,8 @@ export class ProductGeneralForm {
   value = input.required<{
     name: string;
     description: string;
+    details?: string;
+    shippingInfo?: string;
     isActive?: boolean;
     categoryIds: number[];
   }>();
@@ -43,6 +45,8 @@ export class ProductGeneralForm {
   valueChange = output<{
     name: string;
     description: string;
+    details: string;
+    shippingInfo: string;
     isActive: boolean;
     categoryIds: number[];
   }>();
@@ -51,6 +55,8 @@ export class ProductGeneralForm {
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.pattern(/\S+/)]],
     description: ['', [Validators.required, Validators.pattern(/\S+/)]],
+    details: [''],
+    shippingInfo: [''],
     isActive: [true],
     categoryIds: [[] as number[], [Validators.required, Validators.minLength(1)]],
   });
@@ -62,6 +68,8 @@ export class ProductGeneralForm {
         {
           name: current.name,
           description: current.description,
+          details: current.details ?? '',
+          shippingInfo: current.shippingInfo ?? '',
           categoryIds: [...current.categoryIds],
           isActive: current.isActive ?? true,
         },
@@ -92,6 +100,14 @@ export class ProductGeneralForm {
 
   get descriptionControl() {
     return this.form.controls.description;
+  }
+
+  get detailsControl() {
+    return this.form.controls.details;
+  }
+
+  get shippingInfoControl() {
+    return this.form.controls.shippingInfo;
   }
 
   get categoryIdsControl() {

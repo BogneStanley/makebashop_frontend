@@ -30,6 +30,8 @@ export interface ProductResponse {
   id: number;
   name: string;
   description: string;
+  details?: string | null;
+  shippingInfo?: string | null;
   isActive: boolean;
   categories: CategoryResponse[];
   images: ProductImageResponse[];
