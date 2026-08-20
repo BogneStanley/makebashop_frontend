@@ -1,0 +1,47 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: shop-frontend-app
+
+    ports:
+      - "4000:4000"
+
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+
+    restart: unless-stopped
+
+    networks:
+      - shop_front_network
+      - proxy
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.shopfront.rule=Host(`${FRONTEND_HOST:-shop.local}`)"
+      - "traefik.http.routers.shopfront.entrypoints=websecure"
+      - "traefik.http.routers.shopfront.tls=true"
+      - "traefik.http.routers.shopfront.tls.certresolver=letsencrypt"
+      - "traefik.http.services.shopfront.loadbalancer.server.port=4000"
+      - "traefik.http.routers.shopfront.middlewares=secureHeaders@file,compression@file"
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/', (r) => { if (r.statusCode !== 200) process.exit(1); })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+networks:
+  shop_front_network:
+  proxy:
+    external: true
