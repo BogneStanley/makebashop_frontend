@@ -2,7 +2,6 @@ import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalE
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
-import { cartInterceptor } from './core/interceptors/cart.interceptor';
 import { CartService } from './core/services/cart.service';
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -14,6 +13,8 @@ import { definePreset } from '@primeuix/themes';
 import { MessageService } from 'primeng/api';
 import { switchMap } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
+import { CsrfService } from './core/services/csrf.service';
+import { csrfInterceptor } from './core/interceptors/csrf.interceptor';
 
 registerLocaleData(localeFr);
 
@@ -133,9 +134,13 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const authService = inject(AuthService);
       const cartService = inject(CartService);
-      return authService.ensureSession().pipe(switchMap(() => cartService.loadCart()));
+      const csrfService = inject(CsrfService);
+      return csrfService.initialize().pipe(
+        switchMap(() => authService.ensureSession()),
+        switchMap(() => cartService.loadCart()),
+      );
     }),
-    provideHttpClient(withInterceptors([authInterceptor, cartInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, csrfInterceptor])),
     provideBrowserGlobalErrorListeners(),
     providePrimeNG({
       theme: {

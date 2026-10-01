@@ -7,7 +7,6 @@ import { AddToCartRequest, CartResponse, UpdateCartRequest } from '../models/car
 import { ResponseWrapper } from '../models/common/api-wrapper.models';
 import { mapCartItemResponse } from '../utils/map-cart-response';
 import { mapHttpError } from '../utils/map-http-error';
-import { CartContextService } from './cart-context.service';
 import { NotificationService } from './notification.service';
 import { Product } from './product.service';
 
@@ -34,7 +33,6 @@ export type CartVariantAction = 'update' | 'remove';
 export class CartService {
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
-  private cartContext = inject(CartContextService);
   private notifications = inject(NotificationService);
   private readonly baseUrl = `${environment.apiUrl}/cart`;
 
@@ -287,8 +285,6 @@ export class CartService {
   // --- Mise à jour du panier depuis le serveur ---
 
   private applyCart(cart: CartResponse): void {
-    this.cartContext.setCartId(cart.id);
-
     const serverItems = cart.items.map(mapCartItemResponse);
     const orderedItems = this.keepDisplayOrder(this.cartItems(), serverItems);
 
