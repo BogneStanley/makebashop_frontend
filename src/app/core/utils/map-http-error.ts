@@ -1,11 +1,5 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { ErrorWrapper } from '../models/common/api-wrapper.models';
+import { getApiErrorPresentation } from './api-error-handler';
 
 export function mapHttpError(error: unknown): string {
-  if (!(error instanceof HttpErrorResponse)) {
-    return 'Une erreur est survenue.';
-  }
-
-  const body = error.error as ErrorWrapper | undefined;
-  return body?.error ?? 'Une erreur est survenue.';
+  return getApiErrorPresentation(error).message;
 }

@@ -5,7 +5,7 @@ export interface ResponseWrapper<T> {
 }
 
 export interface ErrorWrapper<T = unknown> {
-  errors: T;
-  messageCode: string;
-  error: string;
+  errors: T | null;
+  messageCode?: string | null;
+  error?: string | null;
 }

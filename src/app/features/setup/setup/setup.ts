@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { NotificationService } from '../../../core/services/notification.service';
 import { SetupService } from '../../../core/services/setup.service';
+import { applyApiValidationErrors } from '../../../core/utils/api-error-handler';
 import { mapHttpError } from '../../../core/utils/map-http-error';
 
 function matchingPasswords(control: AbstractControl): ValidationErrors | null {
@@ -97,6 +98,7 @@ export class Setup {
           return;
         }
 
+        applyApiValidationErrors(this.setupForm, error);
         this.notifications.error(mapHttpError(error));
       },
       complete: () => this.isSubmitting.set(false),

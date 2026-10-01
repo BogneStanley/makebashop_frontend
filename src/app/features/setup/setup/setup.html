@@ -53,32 +53,42 @@
             <div>
               <label for="firstName" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">Prénom</label>
               <input id="firstName" pInputText formControlName="firstName" autocomplete="given-name" class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm" [class.border-red-400]="firstNameControl.invalid && firstNameControl.touched" />
-              @if (firstNameControl.invalid && firstNameControl.touched) { <p class="mt-2 text-xs text-red-600">Le prénom est requis.</p> }
+              @if (firstNameControl.invalid && firstNameControl.touched) {
+                <p class="mt-2 text-xs text-red-600">{{ firstNameControl.errors?.['server'] ?? 'Le prénom est requis.' }}</p>
+              }
             </div>
             <div>
               <label for="lastName" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">Nom</label>
               <input id="lastName" pInputText formControlName="lastName" autocomplete="family-name" class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm" [class.border-red-400]="lastNameControl.invalid && lastNameControl.touched" />
-              @if (lastNameControl.invalid && lastNameControl.touched) { <p class="mt-2 text-xs text-red-600">Le nom est requis.</p> }
+              @if (lastNameControl.invalid && lastNameControl.touched) {
+                <p class="mt-2 text-xs text-red-600">{{ lastNameControl.errors?.['server'] ?? 'Le nom est requis.' }}</p>
+              }
             </div>
           </div>
 
           <div class="mb-6">
             <label for="email" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">Email</label>
             <input id="email" type="email" pInputText formControlName="email" autocomplete="email" placeholder="admin@makeba.cm" class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm" [class.border-red-400]="emailControl.invalid && emailControl.touched" />
-            @if (emailControl.invalid && emailControl.touched) { <p class="mt-2 text-xs text-red-600">Saisissez une adresse email valide.</p> }
+            @if (emailControl.invalid && emailControl.touched) {
+              <p class="mt-2 text-xs text-red-600">{{ emailControl.errors?.['server'] ?? 'Saisissez une adresse email valide.' }}</p>
+            }
           </div>
 
           <div class="mb-6">
             <label for="password" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">Mot de passe</label>
             <p-password inputId="password" formControlName="password" [toggleMask]="true" [feedback]="false" autocomplete="new-password" styleClass="w-full" inputStyleClass="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"></p-password>
             <p class="mt-2 text-xs font-light text-gray-500">14 caractères minimum, avec majuscule, minuscule, chiffre et caractère spécial.</p>
-            @if (passwordControl.invalid && passwordControl.touched) { <p class="mt-2 text-xs text-red-600">Le mot de passe ne respecte pas la politique de sécurité.</p> }
+            @if (passwordControl.invalid && passwordControl.touched) {
+              <p class="mt-2 text-xs text-red-600">{{ passwordControl.errors?.['server'] ?? 'Le mot de passe ne respecte pas la politique de sécurité.' }}</p>
+            }
           </div>
 
           <div class="mb-8">
             <label for="passwordConfirmation" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">Confirmer le mot de passe</label>
             <p-password inputId="passwordConfirmation" formControlName="passwordConfirmation" [toggleMask]="true" [feedback]="false" autocomplete="new-password" styleClass="w-full" inputStyleClass="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"></p-password>
-            @if (passwordConfirmationControl.touched && setupForm.errors?.['passwordsMismatch']) { <p class="mt-2 text-xs text-red-600">Les mots de passe ne correspondent pas.</p> }
+            @if (passwordConfirmationControl.touched && setupForm.errors?.['passwordsMismatch']) {
+              <p class="mt-2 text-xs text-red-600">Les mots de passe ne correspondent pas.</p>
+            }
           </div>
 
           <button pButton type="submit" label="Créer l’administrateur" icon="pi pi-user-plus" [loading]="isSubmitting()" [disabled]="isSubmitting()" class="w-full bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-sm uppercase tracking-wider font-semibold"></button>
