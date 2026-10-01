@@ -1,13 +1,8 @@
 services:
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${FRONTEND_IMAGE:?Set FRONTEND_IMAGE to an immutable image reference}
 
     container_name: shop-frontend-app
-
-    ports:
-      - "4000:4000"
 
     environment:
       NODE_ENV: production
@@ -21,7 +16,7 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.shopfront.rule=Host(`${FRONTEND_HOST:-shop.local}`)"
+      - "traefik.http.routers.shopfront.rule=Host(`${FRONTEND_HOST:?Set FRONTEND_HOST}`)"
       - "traefik.http.routers.shopfront.entrypoints=websecure"
       - "traefik.http.routers.shopfront.tls=true"
       - "traefik.http.routers.shopfront.tls.certresolver=letsencrypt"
