@@ -1,0 +1,89 @@
+<main class="min-h-screen bg-[#faf6f0] flex flex-col">
+  <div class="border-b border-amber-100/50 py-10">
+    <div class="max-w-7xl mx-auto px-6">
+      <a routerLink="/" class="inline-block mb-6">
+        <img src="/logo_name_black.png" alt="MAKEBA" class="h-8" />
+      </a>
+      <span class="text-xs tracking-[0.3em] uppercase text-amber-600 font-semibold mb-2 block">Configuration</span>
+      <h1 class="text-4xl font-thin text-gray-900 tracking-wide">Créer le premier administrateur</h1>
+      <div class="w-16 h-0.5 bg-amber-600 mt-3"></div>
+    </div>
+  </div>
+
+  <div class="flex-1 max-w-xl mx-auto px-6 py-16 w-full">
+    @if (state() === 'loading') {
+      <div class="bg-white border border-gray-100 p-8 text-center text-sm font-light text-gray-500">
+        Vérification de la configuration initiale…
+      </div>
+    } @else if (state() === 'unavailable') {
+      <div class="bg-white border border-gray-100 p-8 md:p-10 text-center">
+        <h2 class="text-xl font-light text-gray-900 mb-3">Configuration déjà effectuée</h2>
+        <p class="text-sm font-light text-gray-500 leading-relaxed mb-8">
+          La création du premier administrateur n’est plus disponible. Utilisez la page de connexion pour accéder à l’administration.
+        </p>
+        <a
+          pButton
+          routerLink="/login"
+          label="Connexion administrateur"
+          class="bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-sm uppercase tracking-wider font-semibold"
+        ></a>
+      </div>
+    } @else if (state() === 'error') {
+      <div class="bg-white border border-gray-100 p-8 md:p-10 text-center">
+        <h2 class="text-xl font-light text-gray-900 mb-3">Vérification impossible</h2>
+        <p class="text-sm font-light text-gray-500 leading-relaxed mb-8">
+          Le statut de la configuration initiale ne peut pas être vérifié. Réessayez ou vérifiez la disponibilité de l’API.
+        </p>
+        <button
+          pButton
+          type="button"
+          label="Réessayer"
+          (click)="retry()"
+          class="bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-sm uppercase tracking-wider font-semibold"
+        ></button>
+      </div>
+    } @else {
+      <div class="bg-white border border-gray-100 p-8 md:p-10">
+        <p class="text-sm font-light text-gray-500 mb-8 leading-relaxed">
+          Cette étape n’est proposée qu’une seule fois. Choisissez les identifiants du compte qui administrera la boutique.
+        </p>
+
+        <form [formGroup]="setupForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label for="firstName" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">Prénom</label>
+              <input id="firstName" pInputText formControlName="firstName" autocomplete="given-name" class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm" [class.border-red-400]="firstNameControl.invalid && firstNameControl.touched" />
+              @if (firstNameControl.invalid && firstNameControl.touched) { <p class="mt-2 text-xs text-red-600">Le prénom est requis.</p> }
+            </div>
+            <div>
+              <label for="lastName" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">Nom</label>
+              <input id="lastName" pInputText formControlName="lastName" autocomplete="family-name" class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm" [class.border-red-400]="lastNameControl.invalid && lastNameControl.touched" />
+              @if (lastNameControl.invalid && lastNameControl.touched) { <p class="mt-2 text-xs text-red-600">Le nom est requis.</p> }
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <label for="email" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">Email</label>
+            <input id="email" type="email" pInputText formControlName="email" autocomplete="email" placeholder="admin@makeba.cm" class="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm" [class.border-red-400]="emailControl.invalid && emailControl.touched" />
+            @if (emailControl.invalid && emailControl.touched) { <p class="mt-2 text-xs text-red-600">Saisissez une adresse email valide.</p> }
+          </div>
+
+          <div class="mb-6">
+            <label for="password" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">Mot de passe</label>
+            <p-password inputId="password" formControlName="password" [toggleMask]="true" [feedback]="false" autocomplete="new-password" styleClass="w-full" inputStyleClass="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"></p-password>
+            <p class="mt-2 text-xs font-light text-gray-500">14 caractères minimum, avec majuscule, minuscule, chiffre et caractère spécial.</p>
+            @if (passwordControl.invalid && passwordControl.touched) { <p class="mt-2 text-xs text-red-600">Le mot de passe ne respecte pas la politique de sécurité.</p> }
+          </div>
+
+          <div class="mb-8">
+            <label for="passwordConfirmation" class="block text-xs font-semibold tracking-wider uppercase text-gray-900 mb-2">Confirmer le mot de passe</label>
+            <p-password inputId="passwordConfirmation" formControlName="passwordConfirmation" [toggleMask]="true" [feedback]="false" autocomplete="new-password" styleClass="w-full" inputStyleClass="w-full border-gray-200 focus:border-amber-500 rounded-0 font-light py-2.5 text-sm"></p-password>
+            @if (passwordConfirmationControl.touched && setupForm.errors?.['passwordsMismatch']) { <p class="mt-2 text-xs text-red-600">Les mots de passe ne correspondent pas.</p> }
+          </div>
+
+          <button pButton type="submit" label="Créer l’administrateur" icon="pi pi-user-plus" [loading]="isSubmitting()" [disabled]="isSubmitting()" class="w-full bg-amber-600 border-amber-600 hover:bg-amber-700 hover:border-amber-700 rounded-0 text-sm uppercase tracking-wider font-semibold"></button>
+        </form>
+      </div>
+    }
+  </div>
+</main>
