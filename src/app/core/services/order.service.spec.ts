@@ -68,7 +68,7 @@ describe('OrderService checkout', () => {
       )
       .subscribe((response) => (result = response?.whatsappUrl));
 
-    const request = http.expectOne('https://mabeba-shop-api.stanleybogne.com/api/v1/orders/checkout');
+    const request = http.expectOne('http://localhost:8080/api/v1/orders/checkout');
     expect(request.request.method).toBe('POST');
     expect(request.request.headers.get('Idempotency-Key')).toBe('checkout-42');
     expect(request.request.body).toEqual({

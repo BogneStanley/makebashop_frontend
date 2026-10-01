@@ -1,6 +1,8 @@
 services:
   frontend:
-    image: ${FRONTEND_IMAGE:?Set FRONTEND_IMAGE to an immutable image reference}
+    build:
+      context: .
+      dockerfile: Dockerfile
 
     container_name: shop-frontend-app
 
