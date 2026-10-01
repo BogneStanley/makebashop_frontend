@@ -43,6 +43,7 @@ export class Checkout implements OnInit {
 
   isSubmitting = signal(false);
   submitError = signal<string | null>(null);
+  private idempotencyKey: string | null = null;
 
   checkoutForm = this.fb.nonNullable.group({
     customerFirstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -88,6 +89,8 @@ export class Checkout implements OnInit {
 
     this.isSubmitting.set(true);
     this.submitError.set(null);
+    const idempotencyKey = this.idempotencyKey ?? crypto.randomUUID();
+    this.idempotencyKey = idempotencyKey;
     this.cartService.flushAllDraftQuantities();
 
     const { note, customerEmail, ...customerInfo } = this.checkoutForm.getRawValue();
@@ -97,7 +100,7 @@ export class Checkout implements OnInit {
         ...customerInfo,
         customerEmail: customerEmail.trim() || undefined,
         note: note.trim() || undefined,
-      })
+      }, idempotencyKey)
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe((response) => {
         if (!response) {

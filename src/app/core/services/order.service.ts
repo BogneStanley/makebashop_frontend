@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { Observable, catchError, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -63,7 +63,10 @@ export class OrderService {
     );
   }
 
-  checkoutFromCart(customerInfo: CheckoutCustomerInfo): Observable<CreateOrderResponse | null> {
+  checkoutFromCart(
+    customerInfo: CheckoutCustomerInfo,
+    idempotencyKey: string,
+  ): Observable<CreateOrderResponse | null> {
     if (!this.isBrowser()) {
       return of(null);
     }
@@ -89,7 +92,9 @@ export class OrderService {
         const whatsappNumber = settings?.contacts?.[CONTACT_KEYS.whatsapp];
 
         return this.http
-          .post<ResponseWrapper<OrderResponse>>(`${this.baseUrl}/checkout`, body)
+          .post<ResponseWrapper<OrderResponse>>(`${this.baseUrl}/checkout`, body, {
+            headers: new HttpHeaders({ 'Idempotency-Key': idempotencyKey }),
+          })
           .pipe(
             map((response) => ({
               order: response.data,
