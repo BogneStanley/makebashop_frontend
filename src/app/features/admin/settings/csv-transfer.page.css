@@ -1,0 +1,3 @@
+:host ::ng-deep .p-message-content {
+  align-items: flex-start;
+}

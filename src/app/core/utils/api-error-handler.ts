@@ -29,6 +29,7 @@ const CODE_MESSAGES: Record<string, string> = {
   MAX_UPLOAD_SIZE_ERROR: 'Le fichier est trop volumineux.',
   SETUP_NOT_AVAILABLE: 'La configuration initiale n’est plus disponible.',
   UNAUTHENTICATED: 'Votre session a expiré. Connectez-vous pour continuer.',
+  CSRF_TOKEN_INVALID: 'La protection de session a expiré. Actualisez la page puis réessayez.',
   FORBIDDEN: 'Vous n’avez pas les droits nécessaires pour effectuer cette action.',
 };
 

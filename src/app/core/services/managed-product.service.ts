@@ -65,7 +65,7 @@ export class ManagedProductService {
     return this.http.get<ResponseWrapper<ProductResponse>>(`${this.baseUrl}/${id}`).pipe(
       map((response) => response.data),
       catchError(() =>
-        this.listManaged({ page: 0, size: 500 }).pipe(
+        this.listManaged({ page: 0, size: 100 }).pipe(
           map((result) => result?.content.find((product) => product.id === id) ?? null),
         ),
       ),

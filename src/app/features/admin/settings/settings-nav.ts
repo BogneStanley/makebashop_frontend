@@ -21,6 +21,14 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     icon: 'pi pi-phone',
     route: 'contact',
   },
+  {
+    category: 'Boutique',
+    label: 'Import / Export',
+    description:
+      'Sauvegardez ou restaurez les produits, catégories et configurations au format CSV.',
+    icon: 'pi pi-file-import',
+    route: 'csv',
+  },
 ];
 
 export function groupSettingsByCategory(

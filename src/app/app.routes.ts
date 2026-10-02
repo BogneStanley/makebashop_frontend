@@ -12,11 +12,13 @@ export const routes: Routes = [
   },
   {
     path: 'products',
-    loadComponent: () => import('./features/products/product-search/product-search').then((m) => m.ProductSearch),
+    loadComponent: () =>
+      import('./features/products/product-search/product-search').then((m) => m.ProductSearch),
   },
   {
     path: 'products/:id',
-    loadComponent: () => import('./features/products/product-details/product-details').then((m) => m.ProductDetails),
+    loadComponent: () =>
+      import('./features/products/product-details/product-details').then((m) => m.ProductDetails),
   },
   {
     path: 'cart',
@@ -24,8 +26,7 @@ export const routes: Routes = [
   },
   {
     path: 'checkout',
-    loadComponent: () =>
-      import('./features/checkout/checkout/checkout').then((m) => m.Checkout),
+    loadComponent: () => import('./features/checkout/checkout/checkout').then((m) => m.Checkout),
   },
   {
     path: 'login',
@@ -83,8 +84,7 @@ export const routes: Routes = [
       },
       {
         path: 'users',
-        loadComponent: () =>
-          import('./features/admin/users/user-list').then((m) => m.UserList),
+        loadComponent: () => import('./features/admin/users/user-list').then((m) => m.UserList),
       },
       {
         path: 'profile',
@@ -99,7 +99,9 @@ export const routes: Routes = [
           {
             path: '',
             loadComponent: () =>
-              import('./features/admin/settings/settings-index.page').then((m) => m.SettingsIndexPage),
+              import('./features/admin/settings/settings-index.page').then(
+                (m) => m.SettingsIndexPage,
+              ),
           },
           {
             path: 'highlights',
@@ -114,6 +116,11 @@ export const routes: Routes = [
               import('./features/admin/settings/contact-settings.page').then(
                 (m) => m.ContactSettingsPage,
               ),
+          },
+          {
+            path: 'csv',
+            loadComponent: () =>
+              import('./features/admin/settings/csv-transfer.page').then((m) => m.CsvTransferPage),
           },
         ],
       },

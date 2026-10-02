@@ -1,44 +1,47 @@
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, tap } from 'rxjs';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { Observable, catchError, map, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ResponseWrapper } from '../models/common/api-wrapper.models';
-
-interface CsrfTokenResponse {
-  token: string;
-  headerName: string;
-}
 
 @Injectable({ providedIn: 'root' })
 export class CsrfService {
   private readonly http = inject(HttpClient);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly token = signal<string | null>(null);
-  private readonly headerName = signal('X-XSRF-TOKEN');
+  private readonly document = inject(DOCUMENT);
+  private readonly cookieName = 'XSRF-TOKEN';
 
   initialize(): Observable<void> {
+    return this.refreshToken().pipe(map(() => undefined));
+  }
+
+  /** Ensures that Spring's CSRF cookie exists and is readable by the browser app. */
+  refreshToken(): Observable<string | null> {
     if (!isPlatformBrowser(this.platformId)) {
-      return of(undefined);
+      return of(null);
     }
 
-    return this.http
-      .get<ResponseWrapper<CsrfTokenResponse>>(`${environment.apiUrl}/auth/csrf`)
-      .pipe(
-        tap((response) => {
-          this.token.set(response.data.token);
-          this.headerName.set(response.data.headerName);
-        }),
-        map(() => undefined),
-        catchError(() => of(undefined)),
-      );
+    return this.http.get<void>(`${environment.apiUrl}/auth/csrf`).pipe(
+      map(() => this.getToken()),
+      catchError(() => of(null)),
+    );
   }
 
   getToken(): string | null {
-    return this.token();
+    if (!isPlatformBrowser(this.platformId)) {
+      return null;
+    }
+
+    const prefix = `${this.cookieName}=`;
+    const cookie = this.document.cookie
+      .split(';')
+      .map((value) => value.trim())
+      .find((value) => value.startsWith(prefix));
+
+    return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
   }
 
   getHeaderName(): string {
-    return this.headerName();
+    return 'X-XSRF-TOKEN';
   }
 }

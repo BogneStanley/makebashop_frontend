@@ -1,0 +1,87 @@
+<div>
+  <div class="mb-8">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-900">
+      Import / Export CSV
+    </h2>
+    <p class="mt-2 max-w-2xl text-sm font-light leading-relaxed text-gray-500">
+      Exportez les données actuelles ou réimportez-les dans un autre environnement. Les fichiers
+      exportés servent aussi de modèle : les colonnes doivent être conservées.
+    </p>
+  </div>
+
+  <p-message severity="warn" styleClass="mb-6 w-full">
+    L’import met à jour les catégories et produits portant le même nom ; les variantes sont
+    reconnues par leur SKU. Il n’efface jamais les éléments absents du fichier.
+  </p-message>
+
+  @if (importing()) {
+    <div
+      class="mb-6 flex items-center gap-3 border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+      role="status"
+    >
+      <p-progressSpinner
+        ariaLabel="Import en cours"
+        [style]="{ width: '1.25rem', height: '1.25rem' }"
+        strokeWidth="6"
+      />
+      Import en cours, veuillez patienter…
+    </div>
+  }
+
+  @if (result(); as summary) {
+    <p-message [severity]="summary.errors.length ? 'warn' : 'success'" styleClass="mb-6 w-full">
+      Import terminé : {{ summary.imported }} élément(s) enregistré(s),
+      {{ summary.skipped }} ignoré(s).
+      @if (summary.errors.length) {
+        <ul class="mt-2 list-disc pl-5">
+          @for (error of summary.errors.slice(0, 8); track error) {
+            <li>{{ error }}</li>
+          }
+          @if (summary.errors.length > 8) {
+            <li>{{ summary.errors.length - 8 }} autre(s) erreur(s).</li>
+          }
+        </ul>
+      }
+    </p-message>
+  }
+
+  <div class="grid grid-cols-1 gap-5">
+    @for (section of sections; track section.kind) {
+      <section class="border border-gray-100 bg-white p-5 md:p-6">
+        <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h3 class="text-sm font-medium text-gray-900">{{ section.title }}</h3>
+            <p class="mt-1 text-sm font-light leading-relaxed text-gray-500">
+              {{ section.description }}
+            </p>
+            <p class="mt-3 break-all font-mono text-xs text-gray-400">{{ section.columns }}</p>
+          </div>
+          <div class="flex shrink-0 flex-wrap gap-2">
+            <p-button
+              label="Exporter"
+              icon="pi pi-download"
+              severity="secondary"
+              [outlined]="true"
+              [loading]="exporting() === section.kind"
+              [disabled]="!!exporting() || !!importing()"
+              (onClick)="export(section.kind)"
+            />
+            <label
+              class="inline-flex cursor-pointer items-center justify-center gap-2 border border-amber-600 bg-amber-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:bg-amber-700"
+            >
+              <i class="pi pi-upload"></i>
+              Importer
+              <input
+                class="sr-only"
+                type="file"
+                accept=".csv,text/csv"
+                [disabled]="!!exporting() || !!importing()"
+                (change)="onFileSelected(section.kind, $event)"
+              />
+            </label>
+          </div>
+        </div>
+      </section>
+    }
+  </div>
+</div>

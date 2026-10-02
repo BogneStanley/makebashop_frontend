@@ -60,9 +60,13 @@ export class AuthService {
     }
 
     return this.http
-      .post<ResponseWrapper<AuthResponse>>(`${this.baseUrl}/auth/login`, { email, password }, {
-        headers: { 'X-Auth-Mode': 'cookie' },
-      })
+      .post<ResponseWrapper<AuthResponse>>(
+        `${this.baseUrl}/auth/login`,
+        { email, password },
+        {
+          headers: { 'X-Auth-Mode': 'cookie' },
+        },
+      )
       .pipe(
         switchMap((response) => {
           const user = response.data.user;

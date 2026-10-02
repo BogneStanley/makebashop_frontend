@@ -1,5 +1,6 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpEvent, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { Observable, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CsrfService } from '../services/csrf.service';
 
@@ -16,10 +17,17 @@ export const csrfInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const csrf = inject(CsrfService);
-  const token = csrf.getToken();
-  if (!token) {
-    return next(req);
-  }
+  const send = (token: string | null): Observable<HttpEvent<unknown>> =>
+    next(
+      token
+        ? req.clone({
+            setHeaders: { [csrf.getHeaderName()]: token },
+          })
+        : req,
+    );
 
-  return next(req.clone({ setHeaders: { [csrf.getHeaderName()]: token } }));
+  const cachedToken = csrf.getToken();
+  return cachedToken
+    ? send(cachedToken)
+    : csrf.refreshToken().pipe(switchMap((token) => send(token)));
 };
