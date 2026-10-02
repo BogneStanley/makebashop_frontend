@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminAuthGuard } from './core/guards/admin-auth.guard';
+import { guestOnlyGuard } from './core/guards/guest-only.guard';
 
 export const routes: Routes = [
   {
@@ -30,6 +31,7 @@ export const routes: Routes = [
   },
   {
     path: 'login',
+    canActivate: [guestOnlyGuard],
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
   {

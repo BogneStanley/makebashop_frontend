@@ -1,1 +1,22 @@
-/* Dashboard page styles */
+.dashboard-refresh {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(243 244 246);
+  color: rgb(180 83 9);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.dashboard-refresh:hover:not(:disabled) {
+  border-color: rgb(253 230 138);
+  background: rgb(255 251 235);
+}
+
+.dashboard-refresh:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
